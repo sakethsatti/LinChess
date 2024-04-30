@@ -1,5 +1,5 @@
 # Compiler
-CXX = g++
+CXX = clang++
 
 # Source files
 SRCS = main.cpp board.cpp
