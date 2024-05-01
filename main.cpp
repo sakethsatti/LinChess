@@ -1,13 +1,13 @@
 #include <iostream>
 #include <array>
-#include "board.h"
+#include "board/board.h"
 
 using std::array;
 
 int main() {    
 
     Board test;
-    test.printBoard();
+    test.print_board();
 
     return 0;
 }

@@ -2,7 +2,7 @@
 CXX = clang++
 
 # Source files
-SRCS = main.cpp board.cpp
+SRCS = main.cpp $(wildcard board/*.cpp)
 
 # Target
 TARGET = linchess
