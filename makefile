@@ -2,14 +2,14 @@
 CXX = clang++
 
 # Source files
-SRCS = main.cpp $(wildcard board/*.cpp)
+SRCS = main.cpp $(wildcard NN/*.cpp) $(wildcard ChessGame/*.cpp)
 
 # Target
 TARGET = linchess
 
 # Build rule
 $(TARGET): $(SRCS)
-	$(CXX) $(SRCS) -o $(TARGET)
+	$(CXX) $(SRCS) -o $(TARGET) -std=c++17
 
 # Clean rule
 clean:
