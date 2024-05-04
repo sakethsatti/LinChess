@@ -4,25 +4,32 @@
 #include <vector>
 #include <array>
 #include <string>
+#include <map>
 
 using std::vector;
 using std::array;
 using std::string;
+using std::map;
 
 // Piece types and piece colors as enumerations
-enum PieceTypes { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING };
-enum Color { WHITE, BLACK };
+enum PieceTypes { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING, EMPTY };
+enum Color { WHITE, BLACK, NONE };
 
 // Struct piece containing a piece type and a piece color
 struct Piece {
     PieceTypes type;
     Color color;
+
+    Piece(PieceTypes piecetype, Color piececolor) : type(piecetype), color(piececolor) {}
 };
 
 // Struct square containing a piece and a boolean indicating if the square is empty
 struct Square {
-    Piece piece;
+    Piece piece = Piece(EMPTY, NONE);
     bool empty;
+
+    Square() : empty(true), piece(Piece(EMPTY, NONE)) {}
+    Square(PieceTypes piecetype, Color color) : empty(false), piece(Piece(piecetype, color)) {}
 };
 
 /* 
@@ -34,13 +41,22 @@ struct Square {
 */
 #define FILES 8
 #define RANKS 8
-typedef array<array<Piece, RANKS>, FILES> SquareArray; 
+typedef array<array<Square, RANKS>, FILES> SquareArray; 
 
 class Board {
 private:
     
     // Internal board representation
     SquareArray board_repr;
+    const std::map<int, char> PIECE_TO_CHAR {
+        {PAWN, 'P'},
+        {ROOK, 'R'},
+        {KNIGHT, 'N'},
+        {BISHOP, 'B'},
+        {QUEEN, 'Q'},
+        {KING, 'K'},
+        {EMPTY, '.'}
+    };
 
     // Extra details
     int halfmove_clock;
