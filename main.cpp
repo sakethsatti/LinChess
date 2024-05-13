@@ -4,7 +4,8 @@
 
 int main() {    
     Board board;
-    board.print_board();        
+    board.print_board();
+    board.print_attack_bitboards();        
 
     return 0;
 }

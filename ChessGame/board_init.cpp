@@ -38,6 +38,32 @@ Board::Board()
     // Generate Kings
     board_repr[4][0] = Square(KING, WHITE);
     board_repr[4][7] = Square(KING, BLACK);
+
+
+    // Initialize empty squares on bitboard
+    for ( int i = 0; i < FILES; i++ )
+    {
+        for ( int j = 0; j < RANKS; j++ )
+        {
+            white_attack_bitboard[i][j] = 0;
+            black_attack_bitboard[i][j] = 0;
+        }
+    }
+
+    generate_attack_bitboards();
+
+}
+
+// Check if index is part of board
+bool Board::valid_index(int rank, int file)
+{
+    // Prevent memory access errors
+    if (rank < 0 || rank >= RANKS || file < 0 || file >= FILES)
+    {
+        return false;
+    }
+
+    return true;
 }
 
 void Board::print_board()
@@ -54,6 +80,9 @@ void Board::print_board()
             else if (board_repr[j][i].piece.color == BLACK)
             {
                 std::cout << (char)(toPrint - 'A' + 'a') << " ";
+            }
+            else {
+                std::cout << "  ";
             }
         }
         std::cout << std::endl;
