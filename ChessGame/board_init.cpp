@@ -39,19 +39,6 @@ Board::Board()
     board_repr[4][0] = Square(KING, WHITE);
     board_repr[4][7] = Square(KING, BLACK);
 
-
-    // Initialize empty squares on bitboard
-    for ( int i = 0; i < FILES; i++ )
-    {
-        for ( int j = 0; j < RANKS; j++ )
-        {
-            white_attack_bitboard[i][j] = 0;
-            black_attack_bitboard[i][j] = 0;
-        }
-    }
-
-    generate_attack_bitboards();
-
 }
 
 // Check if index is part of board

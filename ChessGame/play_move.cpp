@@ -27,7 +27,7 @@ void Board::move_piece(int old_file, int old_rank, int new_file, int new_rank) {
         throw std::invalid_argument("Invalid move: cannot take your own piece");
     }
 
-
+    
     
     // Move piece
     board_repr[new_file][new_rank] = board_repr[old_file][old_rank];
@@ -42,31 +42,20 @@ void Board::move_piece(int old_file, int old_rank, int new_file, int new_rank) {
     * Notice the use of board param rather than board_repr
     * This will be useful when checking for a pin.
 */
-bool Board::is_in_check(const SquareArray& board) {
-    // Find the king
-    int king_file = -1;
-    int king_rank = -1;
-    for (int file = 0; file < FILES; file++) {
-        for (int rank = 0; rank < RANKS; rank++) {
-            if (board[file][rank].piece.type == KING && board[file][rank].piece.color == turn) {
-                king_file = file;
-                king_rank = rank;
+bool Board::is_in_check(SquareArray& board) {
+    
+    BitBoardAttack current_opp_attacks = generate_attack_bitboards(board, Piece::get_opp_color(turn));
+
+    for (int i = 0; i < FILES; i++) {
+        for (int j = 0; j < RANKS; j++) {
+            if (board[i][j].piece.type == KING &&
+                board[i][j].piece.color == turn &&
+                current_opp_attacks[i][j]
+            ) { 
+                return true;
             }
         }
     }
-
-    // This will prevent going out of bounds on the diagonals
-    int& smaller = (king_file < king_rank) ? king_file : king_rank;
-    array<int, 2> start_left = {king_file - smaller, king_rank - smaller};
-    array<int, 2> start_right = {king_file - smaller, king_rank - smaller};
-
-    // Check if the king is in check diagonally
-    for (int i = 0; i < 8; ++i)
-    {
-        
-    }
-
-
 
     return false;
 }

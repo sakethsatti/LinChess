@@ -6,7 +6,7 @@ Eventually self-play?
 
 ## Todos:
 - [ ] Implement game dynamics
-    -- [ ] Set up piece moves through UCI
-    -- [ ] Generate legal moves
+    - [ ] Set up piece moves through UCI
+    - [ ] Generate legal moves
 - [ ] Convert from Board to model input.
 - [ ] Create actual Neural Network.
