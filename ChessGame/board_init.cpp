@@ -41,6 +41,12 @@ Board::Board()
 
 }
 
+// Return board repr
+SquareArray Board::get_board_repr()
+{
+    return board_repr;
+}
+
 // Check if index is part of board
 bool Board::valid_index(int rank, int file)
 {

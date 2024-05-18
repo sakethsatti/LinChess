@@ -16,7 +16,7 @@ BitBoardAttack Board::generate_attack_bitboards(SquareArray& input_board, Color 
     // How far out the attack has extended
     int extent;
 
-    BitBoardAttack attack_bitboard;
+    BitBoardAttack attack_bitboard = {0};
 
     
     for ( int i = 0; i < FILES; i++ )
@@ -47,67 +47,6 @@ BitBoardAttack Board::generate_attack_bitboards(SquareArray& input_board, Color 
                             {
                                 attack_bitboard[i+1][j-1] = 1;
                             }
-                        }
-                        break;
-                    case ROOK:
-                        // fdv = four directions validity
-                        fdv = {true, true, true, true};
-                        extent = 1;
-                        while (fdv[0] || fdv[1] || fdv[2] || fdv[3])
-                        {
-                            if (fdv[0] && valid_index(i, j+extent))
-                            { 
-                                attack_bitboard[i][j+extent] = 1;
-                                if (!(input_board[i][j+extent].empty))
-                                {
-                                    fdv[0] = false;
-                                }
-                            }
-                            else
-                            {
-                                fdv[0] = false;
-                            }
-
-                            if (fdv[1] && valid_index(i, j-extent))
-                            {
-                                attack_bitboard[i][j-extent] = 1;
-                                if (!input_board[i][j-extent].empty)
-                                {
-                                    fdv[1] = false;
-                                }
-                            }
-                            else
-                            {
-                                fdv[1] = false;
-                            }
-
-                            if (fdv[2] && valid_index(i+extent, j))
-                            {
-                                attack_bitboard[i+extent][j] = 1;
-                                if (!input_board[i+extent][j].empty)
-                                {
-                                    fdv[2] = false;
-                                }
-                            }
-                            else
-                            {
-                                fdv[2] = false;
-                            }
-
-                            if (fdv[3] && valid_index(i-extent, j))
-                            {
-                                attack_bitboard[i-extent][j] = 1;
-                                if (!input_board[i-extent][j].empty)
-                                {
-                                    fdv[3] = false;
-                                }
-                            }
-                            else
-                            {
-                                fdv[3] = false;
-                            }
-
-                            extent++;
                         }
                         break;
                     case KNIGHT:
@@ -193,6 +132,67 @@ BitBoardAttack Board::generate_attack_bitboards(SquareArray& input_board, Color 
                             {
                                 attack_bitboard[i-extent][j+extent] = 1;
                                 if (!input_board[i-extent][j+extent].empty)
+                                {
+                                    fdv[3] = false;
+                                }
+                            }
+                            else
+                            {
+                                fdv[3] = false;
+                            }
+
+                            extent++;
+                        }
+                        break;
+                    case ROOK:
+                        // fdv = four directions validity
+                        fdv = {true, true, true, true};
+                        extent = 1;
+                        while (fdv[0] || fdv[1] || fdv[2] || fdv[3])
+                        {
+                            if (fdv[0] && valid_index(i, j+extent))
+                            { 
+                                attack_bitboard[i][j+extent] = 1;
+                                if (!(input_board[i][j+extent].empty))
+                                {
+                                    fdv[0] = false;
+                                }
+                            }
+                            else
+                            {
+                                fdv[0] = false;
+                            }
+
+                            if (fdv[1] && valid_index(i, j-extent))
+                            {
+                                attack_bitboard[i][j-extent] = 1;
+                                if (!input_board[i][j-extent].empty)
+                                {
+                                    fdv[1] = false;
+                                }
+                            }
+                            else
+                            {
+                                fdv[1] = false;
+                            }
+
+                            if (fdv[2] && valid_index(i+extent, j))
+                            {
+                                attack_bitboard[i+extent][j] = 1;
+                                if (!input_board[i+extent][j].empty)
+                                {
+                                    fdv[2] = false;
+                                }
+                            }
+                            else
+                            {
+                                fdv[2] = false;
+                            }
+
+                            if (fdv[3] && valid_index(i-extent, j))
+                            {
+                                attack_bitboard[i-extent][j] = 1;
+                                if (!input_board[i-extent][j].empty)
                                 {
                                     fdv[3] = false;
                                 }
