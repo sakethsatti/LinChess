@@ -5,9 +5,10 @@ LinChess is an NNUE neural network trained on stockfish data.
 Eventually self-play?
 
 ## Todos:
-- [ ] General game dynamics
 - [ ] Attack tables
+    - [X] Leaping pieces
+    - [ ] Sliding pieces
 - [ ] Move gen
-- [ ] Search (alpha-beta)
+- [ ] Search
 - [ ] Convert from Board to model input.
 - [ ] Create actual Neural Network.

@@ -16,6 +16,14 @@ private:
 
     // Game info
     Color turn;
+    int halfmove_clock;
+    int move_number;
+
+    // Castling rights
+    bool white_king_castle;
+    bool black_king_castle;
+    bool white_queen_castle;
+    bool black_queen_castle;
 
 
 public:

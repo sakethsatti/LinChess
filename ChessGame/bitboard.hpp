@@ -15,9 +15,13 @@ void print_bitboard(Bitboard b);
 
 // Bitboard masks
 constexpr Bitboard FILE_A = 0x0101010101010101ULL;
+constexpr Bitboard FILE_B = FILE_A << 1;
+constexpr Bitboard FILE_G = FILE_A << 6;
 constexpr Bitboard FILE_H = FILE_A << 7;
 
 constexpr Bitboard RANK_1 = 0xFF;
+constexpr Bitboard RANK_2 = RANK_1 << 8;
+constexpr Bitboard RANK_7 = RANK_1 << 48;
 constexpr Bitboard RANK_8 = RANK_1 << 56;
 
 enum Color {
@@ -37,13 +41,17 @@ enum pos {
 };
 
 // Bitboard functions
-Bitboard toggle_bit(Bitboard b, pos square);
-Bitboard clear_bit(Bitboard b, pos square);
+void toggle_bit(Bitboard &b, pos square);
+void clear_bit(Bitboard &b, pos square);
 
 // Normal pieces
 Bitboard pawn_attacks(pos square, Color color);
 Bitboard knight_attacks(pos square);
 Bitboard king_attacks(pos square);
 
+//Sliding pieces
+Bitboard rook_attacks(pos square);
+Bitboard bishop_attacks(pos square);
+Bitboard queen_attacks(pos square);
 
 #endif

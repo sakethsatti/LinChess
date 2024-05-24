@@ -3,15 +3,110 @@
 
 void print_bitboard(Bitboard b)
 {
-    for (int i = 0; i < 64; i++)
+    for (int rank = 7; rank >= 0; --rank)
     {
-        if (i % 8 == 0)
+        std::cout <<  rank + 1 << "   ";
+        for (int file = 0; file < 8; ++file)
         {
-            std::cout << std::endl;
+            int square = rank * 8 + file;
+            
+            // Bitshift 1 left in order to check if there is a 1 in the square 
+            std::cout << (b & (1ULL << square) ? 1 : 0) << ' ';
         }
-
-        // Bit shift 1 left i times, then bitwise AND with the board.
-        std::cout << (b  & (1ULL << i));
+        std::cout << std::endl;
     }
     std::cout << std::endl;
+    std::cout << "    A B C D E F G H" << std::endl;
+    std::cout << std::endl;
+}
+
+
+
+Bitboard pawn_attacks(pos square, Color color) {
+    Bitboard attacks = 0ULL;
+    if (color == WHITE) {
+        if (1ULL << (square + 7) & ~FILE_H & ~RANK_1) attacks |= 1ULL << (square + 7);
+        if (1ULL << (square + 9) & ~FILE_A & ~RANK_1) attacks |= 1ULL << (square + 9);
+    }
+    else {
+        if (1ULL << (square - 9) & ~FILE_H & ~RANK_8) attacks |= 1ULL << (square - 9);
+        if (1ULL << (square - 7) & ~FILE_A & ~RANK_8) attacks |= 1ULL << (square - 7);
+    }
+    return attacks;
+}
+
+Bitboard knight_attacks(pos square) {
+    Bitboard attacks = 0ULL;
+
+    // 3 up 1 right
+    if ((1ULL << (square + 17)) & ~FILE_A & ~RANK_1 & ~RANK_2) {
+        attacks |= 1ULL << (square + 17);
+    }
+
+    // 3 up 1 left
+    if ((1ULL << (square + 15)) & ~FILE_H & ~RANK_1 & ~RANK_2) {
+        attacks |= 1ULL << (square + 15);
+    }
+
+    // 1 up 3 right
+    if ((1ULL << (square + 10)) & ~(FILE_A | FILE_B) & ~RANK_1) {
+        attacks |= 1ULL << (square + 10);
+    }
+
+    // 1 up 3 left
+    if (1ULL << (square + 6) & ~(FILE_G | FILE_H) & ~RANK_1) {
+        attacks |= 1ULL << (square + 6);
+    }
+
+    // 3 down 1 left
+    if (1ULL << (square - 17) & ~FILE_H & ~RANK_7 & ~RANK_8) {
+        attacks |= 1ULL << (square - 17);
+    }
+
+    // 3 down 1 right
+    if (1ULL << (square - 15) & ~FILE_A & ~RANK_7 & ~RANK_8) {
+        attacks |= 1ULL << (square - 15);
+    }
+
+    // 1 down 3 left
+    if (1ULL << (square - 10) & ~(FILE_G | FILE_H) & ~RANK_8) {
+        attacks |= 1ULL << (square - 10);
+    }
+
+    // 1 down 3 right
+    if (1ULL << (square - 6) & ~(FILE_A | FILE_B) & ~RANK_8) {
+        attacks |= 1ULL << (square - 6);
+    }
+
+    return attacks;
+}
+
+Bitboard king_attacks(pos square) {
+    Bitboard attacks = 0ULL;
+    
+    // North
+    if (1ULL << (square + 8) & ~RANK_1) attacks |= 1ULL << (square + 8);
+
+    // South
+    if (1ULL << (square - 8) & ~RANK_8) attacks |= 1ULL << (square - 8);
+
+    // East
+    if (1ULL << (square + 1) & ~FILE_A) attacks |= 1ULL << (square + 1);
+
+    // West
+    if (1ULL << (square - 1) & ~FILE_H) attacks |= 1ULL << (square - 1);
+
+    // North East
+    if (1ULL << (square + 9) & ~FILE_A & ~RANK_1) attacks |= 1ULL << (square + 9);
+
+    // Northwest
+    if (1ULL << (square + 7) & ~FILE_H & ~RANK_1) attacks |= 1ULL << (square + 7);
+
+    // Southeast
+    if (1ULL << (square - 7) & ~FILE_A & ~RANK_8) attacks |= 1ULL << (square - 7);
+
+    // Southwest
+    if (1ULL << (square - 9) & ~FILE_H & ~RANK_8) attacks |= 1ULL << (square - 9);
+    
+    return attacks;
 }
