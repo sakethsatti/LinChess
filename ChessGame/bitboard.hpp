@@ -2,14 +2,24 @@
 
 #ifndef BITBOARD_HPP
 #define BITBOARD_HPP
+
 #include <cstdint>
 #include <string>
 #include <iostream>
+#include <cmath>
+#include <vector>
+#include <array>
 
 using std::string;
+using std::vector;
+using std::array;
 
 // Bitboard type
 typedef uint64_t Bitboard;
+
+// Max amount of permutations for blockers is 4096
+typedef array<Bitboard, 4096> BlockerTable;
+typedef array<Bitboard, 4096> AttackTable;
 
 void print_bitboard(Bitboard b);
 
@@ -29,6 +39,15 @@ enum Color {
     BLACK
 };
 
+enum Piece {
+    PAWN,
+    KNIGHT,
+    BISHOP,
+    ROOK,
+    QUEEN,
+    KING
+};
+
 enum pos {
     a1, b1, c1, d1, e1, f1, g1, h1,
     a2, b2, c2, d2, e2, f2, g2, h2,
@@ -40,18 +59,60 @@ enum pos {
     a8, b8, c8, d8, e8, f8, g8, h8
 };
 
+const int bishop_relevant_bits[64] = {
+    6, 5, 5, 5, 5, 5, 5, 6, 
+    5, 5, 5, 5, 5, 5, 5, 5, 
+    5, 5, 7, 7, 7, 7, 5, 5, 
+    5, 5, 7, 9, 9, 7, 5, 5, 
+    5, 5, 7, 9, 9, 7, 5, 5, 
+    5, 5, 7, 7, 7, 7, 5, 5, 
+    5, 5, 5, 5, 5, 5, 5, 5, 
+    6, 5, 5, 5, 5, 5, 5, 6
+};
+
+// rook relevant occupancy bit count for every square on board
+const int rook_relevant_bits[64] = {
+    12, 11, 11, 11, 11, 11, 11, 12, 
+    11, 10, 10, 10, 10, 10, 10, 11, 
+    11, 10, 10, 10, 10, 10, 10, 11, 
+    11, 10, 10, 10, 10, 10, 10, 11, 
+    11, 10, 10, 10, 10, 10, 10, 11, 
+    11, 10, 10, 10, 10, 10, 10, 11, 
+    11, 10, 10, 10, 10, 10, 10, 11, 
+    12, 11, 11, 11, 11, 11, 11, 12
+};
+
 // Bitboard functions
-void toggle_bit(Bitboard &b, pos square);
+void toggleBit(Bitboard &b, pos square);
 void clear_bit(Bitboard &b, pos square);
 
 // Normal pieces
-Bitboard pawn_attacks(pos square, Color color);
-Bitboard knight_attacks(pos square);
-Bitboard king_attacks(pos square);
+Bitboard pawnAttacks(pos square, Color color);
+Bitboard knightAttacks(pos square);
+Bitboard kingAttacks(pos square);
 
-//Sliding pieces
-Bitboard rook_attacks(pos square);
-Bitboard bishop_attacks(pos square);
-Bitboard queen_attacks(pos square);
+
+// ********* Sliding pieces *********
+
+// Magic number generation
+Bitboard calcRookMask(pos square);
+Bitboard calcBishopMask(pos square);
+
+BlockerTable generateBlockerPermutations(Bitboard mask);
+BlockerTable calcRookBlockers(pos square);
+BlockerTable calcBishopBlockers(pos square);
+
+Bitboard genRookFly(pos square, Bitboard occupancy);
+Bitboard genBishopFly(pos square, Bitboard occupancy);
+
+AttackTable generateAttackTable(BlockerTable blockers, Piece piece, pos square);
+
+u_int64_t findMagicNumber(const BlockerTable& blockers, const AttackTable& attacks, 
+                            const int important_bits, Piece piece, pos square);
+
+// Functions to use
+Bitboard rookAttacks(pos square, Bitboard occupancy);
+Bitboard bishopAttacks(pos square, Bitboard occupancy);
+Bitboard queenAttacks(pos square, Bitboard occupancy);
 
 #endif

@@ -9,7 +9,7 @@ TARGET = linchess
 
 # Build rule
 $(TARGET): $(SRCS)
-	$(CXX) $(SRCS) -o $(TARGET) -std=c++17
+	$(CXX) $(SRCS) -o $(TARGET) -std=c++20
 
 # Clean rule
 clean:

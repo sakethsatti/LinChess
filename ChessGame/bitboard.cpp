@@ -1,5 +1,5 @@
 #include "bitboard.hpp"
-#include <iostream>
+#include <random>
 
 void print_bitboard(Bitboard b)
 {
@@ -20,9 +20,34 @@ void print_bitboard(Bitboard b)
     std::cout << std::endl;
 }
 
+void toggleBit(Bitboard &b, pos square) {
+    b ^= 1ULL << square;
+}
 
+void clearBit(Bitboard &b, pos square) {
+    b &= ~(1ULL << square);
+}
 
-Bitboard pawn_attacks(pos square, Color color) {
+static inline int count_bits(Bitboard b)
+{
+    // bit counter
+    int count = 0;
+    
+    // consecutively reset least significant 1st bit
+    while (b)
+    {
+        // increment count
+        count++;
+        
+        // reset least significant 1st bit
+        b &= b - 1;
+    }
+    
+    // return bit count
+    return count;
+}
+
+Bitboard pawnAttacks(pos square, Color color) {
     Bitboard attacks = 0ULL;
     if (color == WHITE) {
         if (1ULL << (square + 7) & ~FILE_H & ~RANK_1) attacks |= 1ULL << (square + 7);
@@ -35,7 +60,7 @@ Bitboard pawn_attacks(pos square, Color color) {
     return attacks;
 }
 
-Bitboard knight_attacks(pos square) {
+Bitboard knightAttacks(pos square) {
     Bitboard attacks = 0ULL;
 
     // 3 up 1 right
@@ -81,7 +106,7 @@ Bitboard knight_attacks(pos square) {
     return attacks;
 }
 
-Bitboard king_attacks(pos square) {
+Bitboard kingAttacks(pos square) {
     Bitboard attacks = 0ULL;
     
     // North
@@ -108,5 +133,215 @@ Bitboard king_attacks(pos square) {
     // Southwest
     if (1ULL << (square - 9) & ~FILE_H & ~RANK_8) attacks |= 1ULL << (square - 9);
     
+    return attacks;
+}
+
+Bitboard calcRookMask(pos square) {
+    // XOR prevents the square from being included in the blocker possibilities
+    // ~RANK_1 | ~FILE_A | ~FILE_H | ~RANK_8 are edges, which are not relevant
+    
+    Bitboard full_extent = (RANK_1 << (8 * (square / 8))) ^ (FILE_A << (square % 8));
+
+
+    if (square/8 == 0)
+    {
+
+        if (square == 0)
+            
+            return full_extent & ~(RANK_8 | FILE_H);
+        
+        else if (square == 7)  
+            
+            return full_extent & ~(RANK_8 | FILE_A);
+
+        return full_extent & ~RANK_8 & ~((FILE_A | FILE_H));
+    
+    } else if (square/8 == 7) {
+
+        if (square == 56)
+            
+            return full_extent & ~(RANK_1 | FILE_H);
+        
+        else if (square == 63)  
+            
+            return full_extent & ~(RANK_1 | FILE_A);
+
+        return full_extent & ~RANK_1 & ~((FILE_A | FILE_H));
+    
+    } else if (square%8 == 0) {
+
+        return full_extent & ~FILE_H & ~(RANK_1 | RANK_8);
+
+    } else if (square%8 == 7) {
+
+        return full_extent & ~FILE_A & ~(RANK_1 | RANK_8);
+
+    } 
+    
+    // If the square is not on the edge of the boardd
+    return full_extent & ~(RANK_1 | FILE_A | FILE_H | RANK_8);   
+    
+}
+
+Bitboard calcBishopMask(pos square) {
+    int rank = square / 8;
+    int file = square % 8;
+
+    Bitboard attack = 0ULL;
+
+    // North East
+    for (int i = 1; i < 8; ++i) {
+        int new_rank = rank + i;
+        int new_file = file + i;
+        if (new_rank > 6 || new_file > 6) break;
+        attack |= 1ULL << (new_rank * 8 + new_file);
+    }
+
+    // North West
+    for (int i = 1; i < 8; ++i) {
+        int new_rank = rank + i;
+        int new_file = file - i;
+        if (new_rank > 6 || new_file < 1) break;
+        attack |= 1ULL << (new_rank * 8 + new_file);
+    }
+
+    // South East
+    for (int i = 1; i < 8; ++i) {
+        int new_rank = rank - i;
+        int new_file = file + i;
+        if (new_rank < 1 || new_file > 6) break;
+        attack |= 1ULL << (new_rank * 8 + new_file);
+    }
+
+    // South West
+    for (int i = 1; i < 8; ++i) {
+        int new_rank = rank - i;
+        int new_file = file - i;
+        if (new_rank < 1 || new_file < 1) break;
+        attack |= 1ULL << (new_rank * 8 + new_file);
+    }
+
+    return attack;
+}
+
+BlockerTable generateBlockerPermutations(Bitboard blockers) {
+    BlockerTable permutations = {0};
+    Bitboard b = 0;
+    int i = 0;
+    do {
+        permutations[i] = b;
+        b = (b - blockers) & blockers;
+        ++i;
+    } while (b);
+    return permutations;
+}
+
+BlockerTable calcRookBlockers(pos square) {
+    Bitboard mask = calcRookMask(square);
+    return generateBlockerPermutations(mask);
+}
+
+BlockerTable calcBishopBlockers(pos square) {
+    Bitboard mask = calcBishopMask(square);
+    return generateBlockerPermutations(mask);
+}
+
+Bitboard genRookFly(pos square, Bitboard occupancy)
+{
+    Bitboard attacks = 0ULL;
+    int rank = square / 8;
+    int file = square % 8;
+
+    // North
+    for (int i = rank + 1; i < 8; ++i) {
+        int new_square = i * 8 + file;
+        attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
+    }
+
+    // South
+    for (int i = rank - 1; i >= 0; --i) {
+        int new_square = i * 8 + file;
+        attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
+    }
+
+    // East
+    for (int i = file + 1; i < 8; ++i) {
+        int new_square = rank * 8 + i;
+        attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
+    }
+
+    // West
+    for (int i = file - 1; i >= 0; --i) {
+        int new_square = rank * 8 + i;
+        attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
+    }
+
+    return attacks;
+}
+
+Bitboard genBishopFly(pos square, Bitboard occupancy)
+{
+    Bitboard attacks = 0ULL;
+    int rank = square / 8;
+    int file = square % 8;
+
+    // North East
+    for (int i = 1; i < 8; ++i) {
+        int new_rank = rank + i;
+        int new_file = file + i;
+        if (new_rank > 7 || new_file > 7) break;
+        int new_square = new_rank * 8 + new_file;
+        attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
+    }
+
+    // North West
+    for (int i = 1; i < 8; ++i) {
+        int new_rank = rank + i;
+        int new_file = file - i;
+        if (new_rank > 7 || new_file < 0) break;
+        int new_square = new_rank * 8 + new_file;
+        attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
+    }
+
+    // South East
+    for (int i = 1; i < 8; ++i) {
+        int new_rank = rank - i;
+        int new_file = file + i;
+        if (new_rank < 0 || new_file > 7) break;
+        int new_square = new_rank * 8 + new_file;
+        attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
+    }
+
+    // South West
+    for (int i = 1; i < 8; ++i) {
+        int new_rank = rank - i;
+        int new_file = file - i;
+        if (new_rank < 0 || new_file < 0) break;
+        int new_square = new_rank * 8 + new_file;
+        attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
+    }
+
+    return attacks;
+}
+
+AttackTable generateAttackTable(BlockerTable blockers, Piece piece, pos square)
+{
+    AttackTable attacks = {0};
+    for (int i = 0; i < 1024; ++i) {
+        if (!blockers[i]) continue;
+        if (piece == ROOK)
+            attacks[i] = genRookFly(square, blockers[i]);
+        
+        else 
+            attacks[i] = genBishopFly(square, blockers[i]);
+    }
     return attacks;
 }

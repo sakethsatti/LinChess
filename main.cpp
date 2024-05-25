@@ -4,7 +4,15 @@
 #include "ChessGame/bitboard.hpp"
 
 int main() {    
-    print_bitboard(king_attacks(e7));
+    BlockerTable blockers = calcBishopBlockers(e4);
+    AttackTable bishAttacks = generateAttackTable(blockers, BISHOP, e4);
+
+    print_bitboard(blockers[233]);
+    print_bitboard(bishAttacks[233]);
+
+    // Bitboard stuff = genBishopFly(e4, blockers[233]);
+    // print_bitboard(blockers[233]);
+    // print_bitboard(stuff);    
 
     return 0;
 }
