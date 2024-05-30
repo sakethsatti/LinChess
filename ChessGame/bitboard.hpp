@@ -13,9 +13,11 @@
 using std::string;
 using std::vector;
 using std::array;
+using std::pair;
 
 // Bitboard type
 typedef uint64_t Bitboard;
+typedef uint64_t U64;
 
 // Max amount of permutations for blockers is 4096
 typedef array<Bitboard, 4096> BlockerTable;
@@ -85,8 +87,9 @@ const int rook_relevant_bits[64] = {
 // Bitboard functions
 void toggleBit(Bitboard &b, pos square);
 void clear_bit(Bitboard &b, pos square);
+int count_bits(Bitboard b);
 
-// Normal pieces
+// ********* Leaper pieces *********
 Bitboard pawnAttacks(pos square, Color color);
 Bitboard knightAttacks(pos square);
 Bitboard kingAttacks(pos square);
@@ -107,8 +110,8 @@ Bitboard genBishopFly(pos square, Bitboard occupancy);
 
 AttackTable generateAttackTable(BlockerTable blockers, Piece piece, pos square);
 
-u_int64_t findMagicNumber(const BlockerTable& blockers, const AttackTable& attacks, 
-                            const int important_bits, Piece piece, pos square);
+// This number is NOT a bitboard
+pair<U64, AttackTable> findMagicNumber(const BlockerTable& blockers, const AttackTable& attacks, const int& important_bits);
 
 // Functions to use
 Bitboard rookAttacks(pos square, Bitboard occupancy);

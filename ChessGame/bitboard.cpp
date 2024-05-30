@@ -28,22 +28,12 @@ void clearBit(Bitboard &b, pos square) {
     b &= ~(1ULL << square);
 }
 
-static inline int count_bits(Bitboard b)
-{
-    // bit counter
+int count_bits(Bitboard number) {
     int count = 0;
-    
-    // consecutively reset least significant 1st bit
-    while (b)
-    {
-        // increment count
+    while (number) {
+        number &= (number - 1);
         count++;
-        
-        // reset least significant 1st bit
-        b &= b - 1;
     }
-    
-    // return bit count
     return count;
 }
 
@@ -255,29 +245,31 @@ Bitboard genRookFly(pos square, Bitboard occupancy)
     // North
     for (int i = rank + 1; i < 8; ++i) {
         int new_square = i * 8 + file;
-        attacks |= 1ULL << new_square;
         if (occupancy & (1ULL << new_square)) break;
+        attacks |= 1ULL << new_square;
+        
     }
 
     // South
     for (int i = rank - 1; i >= 0; --i) {
         int new_square = i * 8 + file;
-        attacks |= 1ULL << new_square;
         if (occupancy & (1ULL << new_square)) break;
+        attacks |= 1ULL << new_square;
+        
     }
 
     // East
     for (int i = file + 1; i < 8; ++i) {
         int new_square = rank * 8 + i;
-        attacks |= 1ULL << new_square;
         if (occupancy & (1ULL << new_square)) break;
+        attacks |= 1ULL << new_square;
     }
 
     // West
     for (int i = file - 1; i >= 0; --i) {
         int new_square = rank * 8 + i;
-        attacks |= 1ULL << new_square;
         if (occupancy & (1ULL << new_square)) break;
+        attacks |= 1ULL << new_square;
     }
 
     return attacks;
@@ -293,40 +285,41 @@ Bitboard genBishopFly(pos square, Bitboard occupancy)
     for (int i = 1; i < 8; ++i) {
         int new_rank = rank + i;
         int new_file = file + i;
-        if (new_rank > 7 || new_file > 7) break;
         int new_square = new_rank * 8 + new_file;
-        attacks |= 1ULL << new_square;
+        if (new_rank > 7 || new_file > 7) break;
         if (occupancy & (1ULL << new_square)) break;
+        attacks |= 1ULL << new_square;
     }
 
     // North West
     for (int i = 1; i < 8; ++i) {
         int new_rank = rank + i;
         int new_file = file - i;
-        if (new_rank > 7 || new_file < 0) break;
         int new_square = new_rank * 8 + new_file;
-        attacks |= 1ULL << new_square;
+        if (new_rank > 7 || new_file < 0) break;
         if (occupancy & (1ULL << new_square)) break;
+        attacks |= 1ULL << new_square;
     }
 
     // South East
     for (int i = 1; i < 8; ++i) {
         int new_rank = rank - i;
         int new_file = file + i;
-        if (new_rank < 0 || new_file > 7) break;
         int new_square = new_rank * 8 + new_file;
-        attacks |= 1ULL << new_square;
+        if (new_rank < 0 || new_file > 7) break;
         if (occupancy & (1ULL << new_square)) break;
+        attacks |= 1ULL << new_square;
+        
     }
 
     // South West
     for (int i = 1; i < 8; ++i) {
         int new_rank = rank - i;
         int new_file = file - i;
-        if (new_rank < 0 || new_file < 0) break;
         int new_square = new_rank * 8 + new_file;
-        attacks |= 1ULL << new_square;
+        if (new_rank < 0 || new_file < 0) break;
         if (occupancy & (1ULL << new_square)) break;
+        attacks |= 1ULL << new_square;
     }
 
     return attacks;
@@ -334,8 +327,8 @@ Bitboard genBishopFly(pos square, Bitboard occupancy)
 
 AttackTable generateAttackTable(BlockerTable blockers, Piece piece, pos square)
 {
-    AttackTable attacks = {0};
-    for (int i = 0; i < 1024; ++i) {
+    AttackTable attacks {};
+    for (int i = 0; i < 4096; ++i) {
         if (!blockers[i]) continue;
         if (piece == ROOK)
             attacks[i] = genRookFly(square, blockers[i]);
@@ -345,3 +338,42 @@ AttackTable generateAttackTable(BlockerTable blockers, Piece piece, pos square)
     }
     return attacks;
 }
+
+
+pair<U64, AttackTable> findMagicNumber(const BlockerTable& blockers, const AttackTable& attacks, const int& important_bits) {
+    std::random_device rd;
+    std::mt19937_64 eng(rd());
+    std::uniform_int_distribution<Bitboard> distr;
+
+    int count = 0;
+    int highest = 0;
+    U64 best_magic = 0;
+
+    AttackTable test{ };
+
+    while (true) {
+        Bitboard magic = distr(eng) & distr(eng) & distr(eng);
+
+        test = {0};
+        
+        bool failed = false;
+
+        for (int i = 0; i < blockers.size(); ++i) {
+
+            Bitboard key = (blockers[i] * magic) >> (64 - important_bits); 
+
+            if (test[key] != 0ULL && test[key] != attacks[i]) {
+
+                failed = true;
+                break;
+            }
+
+            test[key] = attacks[i];
+        }
+
+        if (!failed) return {magic, test};
+
+        ++count;
+    }
+}
+
