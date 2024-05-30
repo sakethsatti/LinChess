@@ -1,21 +1,14 @@
 #include <iostream>
 #include <bitset>
-#include "ChessGame/bitboard.hpp"
+#include "ChessGame/magics.hpp"
 
 int main() {    
-    pos square = e4;
-    BlockerTable blockers = calcRookBlockers(square);
-    AttackTable attacks = generateAttackTable(blockers, ROOK, square);
-    auto [magic, table] = findMagicNumber(blockers, attacks, rook_relevant_bits[square]);
-    // std::bitset<64> y(magic);
-    // std::cout << y << std::endl;
+    auto magics = findAllMagics(ROOK);
 
-    Bitboard b = blockers[233];
+    for (U64 magic : magics) {
+        std::cout << "0x" << std::hex << magic << ", ";
+    }
 
-    print_bitboard(b);
-    int index = (b * magic) >> (64 - rook_relevant_bits[square]);
-    std::cout << index << std::endl;
-    print_bitboard(table[index]);
 
     return 0;
 }
