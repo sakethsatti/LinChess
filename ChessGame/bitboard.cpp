@@ -1,6 +1,5 @@
 #include "bitboard.hpp"
 
-
 void print_bitboard(Bitboard b)
 {
     for (int rank = 7; rank >= 0; --rank)

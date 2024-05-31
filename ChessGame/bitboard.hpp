@@ -19,10 +19,6 @@ using std::pair;
 typedef uint64_t Bitboard;
 typedef uint64_t U64;
 
-// Max amount of permutations for blockers is 4096
-typedef array<Bitboard, 4096> BlockerTable;
-typedef array<Bitboard, 4096> AttackTable;
-
 // Bitboard masks
 constexpr Bitboard FILE_A = 0x0101010101010101ULL;
 constexpr Bitboard FILE_B = FILE_A << 1;
@@ -34,7 +30,7 @@ constexpr Bitboard RANK_2 = RANK_1 << 8;
 constexpr Bitboard RANK_7 = RANK_1 << 48;
 constexpr Bitboard RANK_8 = RANK_1 << 56;
 
-constexpr int bishop_relevant_bits[64] = {
+constexpr array<int, 64> bishop_relevant_bits = {
     6, 5, 5, 5, 5, 5, 5, 6, 
     5, 5, 5, 5, 5, 5, 5, 5, 
     5, 5, 7, 7, 7, 7, 5, 5, 
@@ -46,7 +42,7 @@ constexpr int bishop_relevant_bits[64] = {
 };
 
 // rook relevant occupancy bit count for every square on board
-constexpr int rook_relevant_bits[64] = {
+constexpr array<int, 64> rook_relevant_bits = {
     12, 11, 11, 11, 11, 11, 11, 12, 
     11, 10, 10, 10, 10, 10, 10, 11, 
     11, 10, 10, 10, 10, 10, 10, 11, 
@@ -56,6 +52,31 @@ constexpr int rook_relevant_bits[64] = {
     11, 10, 10, 10, 10, 10, 10, 11, 
     12, 11, 11, 11, 11, 11, 11, 12
 };
+
+inline consteval int sum_relevant_bits(const array<int, 64>& relevant_bits) {
+    int result = 0;
+    for (int i = 1; i < 64; ++i) {
+        result += 1 << relevant_bits[i];
+    }
+    return result;
+}
+
+// Bishop look up size and Rook look up size
+constexpr int BLS = sum_relevant_bits(bishop_relevant_bits);
+constexpr int RLS = sum_relevant_bits(rook_relevant_bits);
+
+// Create look up tables
+inline consteval array<Bitboard, BLS> createBishopTable()
+{
+    array<Bitboard, BLS> table;
+    for (int square = 0; square < 64; ++square)
+    {
+        int key = ()
+        table[]
+    }
+}
+
+consteval array<U64, RLS> createRookTable();
 
 // Magic numbers
 constexpr U64 rook_magics[64] = {
@@ -69,8 +90,6 @@ constexpr U64 rook_magics[64] = {
     0x80002031008841, 0x408610080400875, 0x6022040810832, 0xc41200106040444a, 0x2002488102046, 0x2001081080402, 0x6802002400b8090a, 0x20211410020840a
 };
 
-
-
 // Magics for bishop a1 -> h8
 constexpr U64 bishop_magics[64] = {
     0x80008060400011, 0x4000a0005001c0, 0x2500200100104108, 0x2180100006801800, 0x80120400802800, 0x100040002281900, 0x600009304020008, 0x4980042043000480,
@@ -82,6 +101,7 @@ constexpr U64 bishop_magics[64] = {
     0x8204288208410200, 0x10124007200040, 0x400101200218c300, 0x800800300080, 0x1800403080080, 0x2822000990040200, 0x900080281100c00, 0x1580004304008200, 
     0x8000604c10800101, 0x20201280400505, 0x430200804010204a, 0x288500020093d01, 0x4200102800050105, 0x81000804008201, 0x81002082002401, 0x600022404410982
 };
+
 
 
 void print_bitboard(Bitboard b);
@@ -116,15 +136,14 @@ void toggleBit(Bitboard &b, pos square);
 int count_bits(Bitboard b);
 
 // ********* Leaper pieces *********
-inline Bitboard pawnAttacks(pos square, Color color);
-inline Bitboard knightAttacks(pos square);
-inline Bitboard kingAttacks(pos square);
-
+Bitboard pawnAttacks(pos square, Color color);
+Bitboard knightAttacks(pos square);
+Bitboard kingAttacks(pos square);
 
 // ********* Sliding pieces *********
-inline Bitboard rookAttacks(pos square, Bitboard occupancy);
-inline Bitboard bishopAttacks(pos square, Bitboard occupancy);
-inline Bitboard queenAttacks(pos square, Bitboard occupancy);
+Bitboard rookAttacks(pos square, Bitboard occupancy);
+Bitboard bishopAttacks(pos square, Bitboard occupancy);
+Bitboard queenAttacks(pos square, Bitboard occupancy);
 
 
 #endif

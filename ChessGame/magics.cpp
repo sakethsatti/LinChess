@@ -3,7 +3,7 @@
 #include <iostream>
 
 
-inline Bitboard calcRookMask(pos square) {
+Bitboard calcRookMask(pos square) {
     // XOR prevents the square from being included in the blocker possibilities
     // ~RANK_1 | ~FILE_A | ~FILE_H | ~RANK_8 are edges, which are not relevant
     
@@ -50,7 +50,7 @@ inline Bitboard calcRookMask(pos square) {
     
 }
 
-inline Bitboard calcBishopMask(pos square) {
+Bitboard calcBishopMask(pos square) {
     int rank = square / 8;
     int file = square % 8;
 
@@ -91,7 +91,7 @@ inline Bitboard calcBishopMask(pos square) {
     return attack;
 }
 
-inline BlockerTable generateBlockerPermutations(Bitboard blockers) {
+BlockerTable generateBlockerPermutations(Bitboard blockers) {
     BlockerTable permutations = {0};
     Bitboard b = 0;
     int i = 0;
@@ -103,17 +103,17 @@ inline BlockerTable generateBlockerPermutations(Bitboard blockers) {
     return permutations;
 }
 
-inline BlockerTable calcRookBlockers(pos square) {
+BlockerTable calcRookBlockers(pos square) {
     Bitboard mask = calcRookMask(square);
     return generateBlockerPermutations(mask);
 }
 
-inline BlockerTable calcBishopBlockers(pos square) {
+BlockerTable calcBishopBlockers(pos square) {
     Bitboard mask = calcBishopMask(square);
     return generateBlockerPermutations(mask);
 }
 
-inline Bitboard genRookFly(pos square, Bitboard occupancy)
+Bitboard genRookFly(const pos& square, const Bitboard& occupancy)
 {
     Bitboard attacks = 0ULL;
     int rank = square / 8;
@@ -152,7 +152,7 @@ inline Bitboard genRookFly(pos square, Bitboard occupancy)
     return attacks;
 }
 
-inline Bitboard genBishopFly(pos square, Bitboard occupancy)
+Bitboard genBishopFly(const pos& square, const Bitboard& occupancy)
 {
     Bitboard attacks = 0ULL;
     int rank = square / 8;
@@ -202,7 +202,8 @@ inline Bitboard genBishopFly(pos square, Bitboard occupancy)
     return attacks;
 }
 
-inline AttackTable generateAttackTable(BlockerTable blockers, Piece piece, pos square)
+
+AttackTable generateAttackTable(BlockerTable blockers, Piece piece, pos square)
 {
     AttackTable attacks {};
     for (int i = 0; i < 4096; ++i) {
@@ -217,14 +218,10 @@ inline AttackTable generateAttackTable(BlockerTable blockers, Piece piece, pos s
 }
 
 
-inline U64 findMagicNumber(const BlockerTable& blockers, const AttackTable& attacks, const int& important_bits) {
+U64 findMagicNumber(const BlockerTable& blockers, const AttackTable& attacks, const int& important_bits) {
     std::random_device rd;
     std::mt19937_64 eng(rd());
     std::uniform_int_distribution<Bitboard> distr;
-
-    int count = 0;
-    int highest = 0;
-    U64 best_magic = 0;
 
     AttackTable test{ };
 
@@ -237,10 +234,10 @@ inline U64 findMagicNumber(const BlockerTable& blockers, const AttackTable& atta
 
         for (int i = 0; i < blockers.size(); ++i) {
 
-            Bitboard key = (blockers[i] * magic) >> (64 - important_bits); 
+            Bitboard key = (blockers[i] * magic) >> (64 - attacks[i]);
+ 
 
             if (test[key] != 0ULL && test[key] != attacks[i]) {
-
                 failed = true;
                 break;
             }
@@ -249,8 +246,6 @@ inline U64 findMagicNumber(const BlockerTable& blockers, const AttackTable& atta
         }
 
         if (!failed) return magic;
-
-        ++count;
     }
 }
 
@@ -264,11 +259,8 @@ array<U64, 64> findAllMagics(Piece p)
         BlockerTable blockers = (p == BISHOP) ? calcBishopBlockers((pos)i) : calcRookBlockers((pos)i);
         AttackTable attacks = generateAttackTable(blockers, p, (pos)i); 
 
-
-
         if (p == BISHOP) magics[i] = findMagicNumber(blockers, attacks, bishop_relevant_bits[i]);
         else magics[i] = findMagicNumber(blockers, attacks, rook_relevant_bits[i]);
     }
     return magics;
 } 
-

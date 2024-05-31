@@ -2,13 +2,24 @@
 #include <bitset>
 #include "ChessGame/magics.hpp"
 
-int main() {    
-    auto magics = findAllMagics(ROOK);
-
-    for (U64 magic : magics) {
-        std::cout << "0x" << std::hex << magic << ", ";
-    }
+int main() {
+    std::cout << BLS << std::endl;
+    std::cout << RLS << std::endl;
 
 
-    return 0;
+    // U64 magic = findMagicNumber(blockers, attacks, 12);
+
+    // std::cout << std::hex << magic << std::endl;
+
+    /*
+        auto magics = findAllMagics(ROOK);
+    
+        for (int i = 0; i < 64; ++i) {
+            std::cout << "0x" << std::hex << magics[i] << std::endl;
+        }
+
+        return 0;
+    */
+
+    
 }
