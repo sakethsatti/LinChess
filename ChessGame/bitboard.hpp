@@ -66,14 +66,16 @@ const BishopTable BISHOP_TABLE = createBishopTable();
 const RookTable ROOK_TABLE = createRookTable();
 
 // ********* Leaper pieces *********
-Bitboard pawnAttacks(pos square, Color color);
-Bitboard knightAttacks(pos square);
-Bitboard kingAttacks(pos square);
+Bitboard pawnAttacks(const pos& square, const Color& color);
+Bitboard knightAttacks(const pos& square);
+Bitboard kingAttacks(const pos& square);
+
+int find_index(const Bitboard& blockers, const pos& sq, const Piece& piece);
 
 // ********* Sliding pieces *********
-Bitboard rookAttacks(pos square, Bitboard occupancy);
-Bitboard bishopAttacks(pos square, Bitboard occupancy);
-Bitboard queenAttacks(pos square, Bitboard occupancy);
+Bitboard rookAttacks(const pos& square, const Bitboard& allies, const Bitboard& opps);
+Bitboard bishopAttacks(const pos& square, const Bitboard& allies, const Bitboard& opps);
+Bitboard queenAttacks(const pos& square, const Bitboard& allies, const Bitboard& opps);
 
 
 #endif

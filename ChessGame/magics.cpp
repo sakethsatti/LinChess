@@ -202,22 +202,6 @@ Bitboard calcRookMask(pos square) {
     return attacks;
 }
 
-
-AttackTable generateAttackTable(BlockerTable blockers, Piece piece, pos square)
-{
-    AttackTable attacks {};
-    for (int i = 0; i < 4096; ++i) {
-        if (!blockers[i]) continue;
-        if (piece == ROOK)
-            attacks[i] = genRookFly(square, blockers[i]);
-        
-        else 
-            attacks[i] = genBishopFly(square, blockers[i]);
-    }
-    return attacks;
-}
-
-
 U64 findMagicNumber(const BlockerTable& blockers, const int& important_bits, const Piece& piece, const pos& square) {
     std::random_device rd;
     std::mt19937_64 eng(rd());

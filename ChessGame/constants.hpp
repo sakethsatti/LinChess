@@ -77,6 +77,19 @@ constexpr array<int, 64> rook_relevant_bits = {
     12, 11, 11, 11, 11, 11, 11, 12
 };
 
+consteval inline array<int, 64> create_index_add_table(const array<int, 64>& arr) {
+    int sum = 0;
+    array<int, 64> index_add_table;
+    for (int i = 0; i < 64; ++i) {
+        index_add_table[i] = sum;
+        sum += (1 << arr[i]);
+    }
+    return index_add_table;
+}
+
+constexpr array<int, 64> bOffsets = create_index_add_table(bishop_relevant_bits);
+constexpr array<int, 64> rOffsets = create_index_add_table(rook_relevant_bits);
+
 // Magic numbers
 constexpr U64 bishop_magics[64] = {
     0x81a0029400528200, 0x8020040102002000, 0x6016021202020000, 0x480404088644a004, 0x6204042031002b20, 0x1100844000348, 0x8009111812401008, 0xc0421001a010, 

@@ -36,7 +36,7 @@ int count_bits(Bitboard number) {
     return count;
 }
 
-Bitboard pawnAttacks(pos square, Color color) {
+Bitboard pawnAttacks(const pos& square, const Color& color) {
     Bitboard attacks = 0ULL;
     if (color == WHITE) {
         if (1ULL << (square + 7) & ~FILE_H & ~RANK_1) attacks |= 1ULL << (square + 7);
@@ -49,7 +49,7 @@ Bitboard pawnAttacks(pos square, Color color) {
     return attacks;
 }
 
-Bitboard knightAttacks(pos square) {
+Bitboard knightAttacks(const pos& square) {
     Bitboard attacks = 0ULL;
 
     // 3 up 1 right
@@ -95,7 +95,7 @@ Bitboard knightAttacks(pos square) {
     return attacks;
 }
 
-Bitboard kingAttacks(pos square) {
+Bitboard kingAttacks(const pos& square) {
     Bitboard attacks = 0ULL;
     
     // North
@@ -123,4 +123,39 @@ Bitboard kingAttacks(pos square) {
     if (1ULL << (square - 9) & ~FILE_H & ~RANK_8) attacks |= 1ULL << (square - 9);
     
     return attacks;
+}
+
+
+// This will help find the index in the massive lookup tables
+int find_index(const Bitboard& blockers, const pos& sq, const Piece& piece) {
+    int index;
+    if (piece == BISHOP) {
+        index = (blockers * bishop_magics[sq]) >> (64 - bishop_relevant_bits[sq]);
+        return index + bOffsets[sq];
+    } else {
+        index = (blockers * rook_magics[sq]) >> (64 - rook_relevant_bits[sq]);
+        return index + rOffsets[sq];
+    }
+}
+
+// ********* Sliding pieces *********
+Bitboard rookAttacks(const pos& square, const Bitboard& allies, const Bitboard& opps)
+{
+    Bitboard attacks = 0ULL;
+    Bitboard blockers = (allies | opps) & calcRookMask(square);
+    int index = find_index(blockers, square, ROOK);
+    return ROOK_TABLE[index] & ~allies;
+}
+
+Bitboard bishopAttacks(const pos& square, const Bitboard& allies, const Bitboard& opps)
+{
+    Bitboard attacks = 0ULL;
+    Bitboard blockers = (allies | opps) & calcBishopMask(square);
+    int index = find_index(blockers, square, BISHOP);
+    return BISHOP_TABLE[index] & ~allies;
+}
+
+Bitboard queenAttacks(const pos& square, const Bitboard& allies, const Bitboard& opps)
+{
+    return rookAttacks(square, allies, opps) | bishopAttacks(square, allies, opps);
 }
