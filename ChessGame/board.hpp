@@ -1,4 +1,13 @@
+#pragma once
+
+#ifndef BOARD_HPP
+#define BOARD_HPP
+
 #include "bitboard.hpp"
+
+struct Move {
+    
+};
 
 class Board {
 private:
@@ -14,7 +23,7 @@ private:
         * 6 - white pieces
         * 7 - black pieces
     */
-    Bitboard position[8];
+    array<Bitboard, 8> position;
 
     // Game info
     Color turn;
@@ -27,11 +36,16 @@ private:
     bool white_queen_castle;
     bool black_queen_castle;
 
+    int en_passant_square;
+
 
 public:
     Board();
     Board(std::string FEN);
-    void initialize_position();
+    void print_position();
+
 
 
 };
+
+#endif // BOARD_HPP
