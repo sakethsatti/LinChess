@@ -67,15 +67,16 @@ const RookTable ROOK_TABLE = createRookTable();
 
 // ********* Leaper pieces *********
 Bitboard pawnAttacks(const pos& square, const Color& color);
+Bitboard pawnMoves(const pos& square, const Bitboard& Blockers, const Color& color);
 Bitboard knightAttacks(const pos& square);
 Bitboard kingAttacks(const pos& square);
 
 int find_index(const Bitboard& blockers, const pos& sq, const Piece& piece);
 
 // ********* Sliding pieces *********
-Bitboard rookAttacks(const pos& square, const Bitboard& allies, const Bitboard& opps);
-Bitboard bishopAttacks(const pos& square, const Bitboard& allies, const Bitboard& opps);
-Bitboard queenAttacks(const pos& square, const Bitboard& allies, const Bitboard& opps);
+Bitboard rookAttacks(const pos& square, const Bitboard& board_state);
+Bitboard bishopAttacks(const pos& square, const Bitboard& board_state);
+Bitboard queenAttacks(const pos& square, const Bitboard& board_state);
 
 
 #endif

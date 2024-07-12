@@ -49,6 +49,19 @@ Bitboard pawnAttacks(const pos& square, const Color& color) {
     return attacks;
 }
 
+Bitboard pawnMoves(const pos& square, const Bitboard& Blockers, const Color& color) {
+    Bitboard attacks = 0ULL;
+    if (color == WHITE) {
+        if (1ULL << (square + 8) & ~Blockers) attacks |= 1ULL << (square + 8);
+        if ((1ULL << (square + 16) & ~Blockers) && ((1ULL << square) & RANK_2)) attacks |= 1ULL << (square + 16);
+    }
+    else {
+        if (1ULL << (square - 8) & ~Blockers) attacks |= 1ULL << (square - 8);
+        if ((1ULL << (square - 16) & ~Blockers) && ((1ULL << square) & RANK_7)) attacks |= 1ULL << (square - 16);
+    }
+    return attacks;
+}
+
 Bitboard knightAttacks(const pos& square) {
     Bitboard attacks = 0ULL;
 
@@ -139,23 +152,23 @@ int find_index(const Bitboard& blockers, const pos& sq, const Piece& piece) {
 }
 
 // ********* Sliding pieces *********
-Bitboard rookAttacks(const pos& square, const Bitboard& allies, const Bitboard& opps)
+Bitboard rookAttacks(const pos& square, const Bitboard& board_state)
 {
     Bitboard attacks = 0ULL;
-    Bitboard blockers = (allies | opps) & calcRookMask(square);
+    Bitboard blockers = (board_state) & calcRookMask(square);
     int index = find_index(blockers, square, ROOK);
-    return ROOK_TABLE[index] & ~allies;
+    return ROOK_TABLE[index];
 }
 
-Bitboard bishopAttacks(const pos& square, const Bitboard& allies, const Bitboard& opps)
+Bitboard bishopAttacks(const pos& square, const Bitboard& board_state)
 {
     Bitboard attacks = 0ULL;
-    Bitboard blockers = (allies | opps) & calcBishopMask(square);
+    Bitboard blockers = (board_state) & calcBishopMask(square);
     int index = find_index(blockers, square, BISHOP);
-    return BISHOP_TABLE[index] & ~allies;
+    return BISHOP_TABLE[index];
 }
 
-Bitboard queenAttacks(const pos& square, const Bitboard& allies, const Bitboard& opps)
+Bitboard queenAttacks(const pos& square, const Bitboard& board_state)
 {
-    return rookAttacks(square, allies, opps) | bishopAttacks(square, allies, opps);
+    return rookAttacks(square, board_state) | bishopAttacks(square, board_state);
 }

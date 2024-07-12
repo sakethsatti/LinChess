@@ -8,11 +8,13 @@
 #include <cmath>
 #include <vector>
 #include <array>
+#include <map>
 
 using std::string;
 using std::vector;
 using std::array;
 using std::pair;
+using std::map;
 
 // Bitboard type
 typedef uint64_t Bitboard;

@@ -41,7 +41,6 @@ Board::Board(std::string FEN) {
  
         // store token string in the vector
         FEN_parts[i] = temp;
-        std::cout << FEN_parts[i] << std::endl;
         ++i;
     }
 
@@ -76,7 +75,6 @@ Board::Board(std::string FEN) {
                 case 'b':
                     position[2] |= 1ULL << FEN_TO_POS[fen_square];
                     position[7] |= 1ULL << FEN_TO_POS[fen_square];
-                    std::cout << FEN_TO_POS[fen_square] << std::endl;
                     break;
                 case 'R':
                     position[3] |= 1ULL << FEN_TO_POS[fen_square];
@@ -103,7 +101,6 @@ Board::Board(std::string FEN) {
                     position[7] |= 1ULL << FEN_TO_POS[fen_square];
                     break;
                 default:
-                    std::cout << "what" << std::endl;
                     break;
             }
             ++fen_square;
@@ -216,4 +213,113 @@ void Board::print_position() {
         std::cout << std::endl;
     }
     std::cout << std::endl;
+}
+
+// color is the color of the king we are checking for
+Bitboard Board::findUnsafeKingSquares(Color color)
+{
+
+    Bitboard attacks = 0ULL;
+    // Here we must ignore the king to find squares that will be unsafe after the king has moved 
+    Bitboard friendPieces = position[6 + color] & ~(position[KING]);
+    Bitboard& oppPieces = position[7 - color];
+
+    // Notice the use of 6 + color get the opposite color's pieces 
+    for (int i = 0; i < 64; ++i)
+    {
+         
+        if (oppPieces & (1 << i))
+        {
+            if (position[PAWN] & oppPieces & (1 << i))
+            {
+                attacks |= pawnAttacks((pos)i, color);
+            }
+            else if (position[KNIGHT] & oppPieces & (1 << i))
+            {
+                attacks |= knightAttacks((pos)i);
+            }
+            else if (position[BISHOP] & oppPieces & (1 << i))
+            {
+                attacks |= bishopAttacks((pos)i, friendPieces | oppPieces);
+            }
+            else if (position[ROOK] & oppPieces & (1 << i))
+            {
+                attacks |= rookAttacks((pos)i, friendPieces | oppPieces);
+            }
+            else if (position[QUEEN] & oppPieces & (1 << i))
+            {
+                attacks |= queenAttacks((pos)i, friendPieces | oppPieces);
+            }
+            else if (position[KING] & oppPieces & (1 << i))
+            {
+                attacks |= kingAttacks((pos)i);
+            }
+        
+        }
+    }
+    return attacks;
+}
+
+bool Board::in_check(Color color)
+{
+    Bitboard attacks = findUnsafeKingSquares(color);
+    return attacks & position[KING] & position[6 + color];
+}
+
+LegalMoves Board::genLegalMoves()
+{
+    Bitboard allColorPieces;
+    Bitboard allOppPieces;
+
+    if (turn == WHITE)
+    {
+        allColorPieces = position[6];
+        allOppPieces = position[7];
+    }
+    else {
+        allColorPieces = position[7];
+        allOppPieces = position[6];
+    }
+    LegalMoves legal_moves;
+
+    // Useful for detecting kings walking into checks
+    Bitboard kingDanger = findUnsafeKingSquares(BLACK);
+    
+    for (int i = 0; i < 64; ++i)
+    {
+        Bitboard allPieceMoves = 0ULL;
+
+        if (allColorPieces & position[PAWN] & (1ULL << i)) {
+            allPieceMoves = pawnMoves((pos)i, allColorPieces | allOppPieces, turn)
+                                    | (pawnAttacks((pos)i, turn) | allOppPieces);
+
+        } else if (allColorPieces & position[KNIGHT] & (1ULL << i)) {
+            allPieceMoves = knightAttacks((pos)i) & ~allColorPieces;
+
+        } else if (allColorPieces & position[BISHOP] & (1ULL << i)) {
+            allPieceMoves = bishopAttacks((pos)i, allColorPieces | allOppPieces) & ~allColorPieces;
+
+        } else if (allColorPieces & position[ROOK] & (1ULL << i)) {
+            allPieceMoves = rookAttacks((pos)i, allColorPieces | allOppPieces) & ~allColorPieces;
+
+        } else if (allColorPieces & position[QUEEN] & (1ULL << i)) {
+            allPieceMoves = queenAttacks((pos)i, allColorPieces | allOppPieces) & ~allColorPieces;
+
+        } else if (allColorPieces & position[KING] & (1ULL << i)) {
+            allPieceMoves = kingAttacks((pos)i) & ~kingDanger;
+        }
+
+        while (allPieceMoves)
+        {
+            int lsb = __builtin_ctzll(allPieceMoves);
+            legal_moves.push_back(
+                Move((pos)i, (pos)lsb, turn, false, false, false)
+            );
+
+            allPieceMoves -= (1ULL << lsb);
+        }
+    }
+
+    return legal_moves;
+
 }
