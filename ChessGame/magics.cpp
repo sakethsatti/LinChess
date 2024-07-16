@@ -122,31 +122,30 @@ Bitboard calcRookMask(pos square) {
     // North
     for (int i = rank + 1; i < 8; ++i) {
         int new_square = i * 8 + file;
-        if (occupancy & (1ULL << new_square)) break;
         attacks |= 1ULL << new_square;
-        
+        if (occupancy & (1ULL << new_square)) break;
     }
 
     // South
     for (int i = rank - 1; i >= 0; --i) {
         int new_square = i * 8 + file;
-        if (occupancy & (1ULL << new_square)) break;
         attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
         
     }
 
     // East
     for (int i = file + 1; i < 8; ++i) {
         int new_square = rank * 8 + i;
-        if (occupancy & (1ULL << new_square)) break;
         attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
     }
 
     // West
     for (int i = file - 1; i >= 0; --i) {
         int new_square = rank * 8 + i;
-        if (occupancy & (1ULL << new_square)) break;
         attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
     }
 
     return attacks;
@@ -164,8 +163,8 @@ Bitboard calcRookMask(pos square) {
         int new_file = file + i;
         int new_square = new_rank * 8 + new_file;
         if (new_rank > 7 || new_file > 7) break;
-        if (occupancy & (1ULL << new_square)) break;
         attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
     }
 
     // North West
@@ -174,8 +173,8 @@ Bitboard calcRookMask(pos square) {
         int new_file = file - i;
         int new_square = new_rank * 8 + new_file;
         if (new_rank > 7 || new_file < 0) break;
-        if (occupancy & (1ULL << new_square)) break;
         attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
     }
 
     // South East
@@ -184,8 +183,8 @@ Bitboard calcRookMask(pos square) {
         int new_file = file + i;
         int new_square = new_rank * 8 + new_file;
         if (new_rank < 0 || new_file > 7) break;
-        if (occupancy & (1ULL << new_square)) break;
         attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
         
     }
 
@@ -195,8 +194,8 @@ Bitboard calcRookMask(pos square) {
         int new_file = file - i;
         int new_square = new_rank * 8 + new_file;
         if (new_rank < 0 || new_file < 0) break;
-        if (occupancy & (1ULL << new_square)) break;
         attacks |= 1ULL << new_square;
+        if (occupancy & (1ULL << new_square)) break;
     }
 
     return attacks;
