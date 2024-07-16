@@ -6,23 +6,20 @@
 #include "bitboard.hpp"
 
 struct Move {
-    pos from;
-    pos to;
+    // if from or to is -1 then it is a castling move
+    int from;
+    int to;
+    
     Color color;
-    bool king_moved;
-    bool kingside_rook_moved;
-    bool queenside_rook_moved;
-    bool en_passant_possible;
-    pos en_passant_target;
+    bool king_castle;
+    bool queen_castle;
+    // -1 if none or will be set to the square that can be captured
+    int en_passant_target;
 
-    Move(pos from, pos to, Color color, bool king_moved, bool kingside_rook_moved, bool queenside_rook_moved) : 
-        from(from), to(to), color(color), king_moved(king_moved), kingside_rook_moved(kingside_rook_moved),
-        queenside_rook_moved(queenside_rook_moved) {}
-
-    Move(pos from, pos to, Color color, bool king_moved, bool kingside_rook_moved, bool queenside_rook_moved, pos en_passant_target) : 
-        from(from), to(to), color(color), king_moved(king_moved), kingside_rook_moved(kingside_rook_moved),
-        queenside_rook_moved(queenside_rook_moved), en_passant_possible(true), en_passant_target(en_passant_target) {}
-}; 
+    Move(int from, int to, Color color, bool king_castle, bool queen_castle, int en_passant_target) :
+        from(from), to(to), king_castle(king_castle), queen_castle(queen_castle), color(color),
+        en_passant_target(en_passant_target) {}
+};
 
 typedef vector<Move> LegalMoves;
 
@@ -55,20 +52,21 @@ private:
 
     int en_passant_square;
     Bitboard findUnsafeKingSquares(Color color);
-    bool in_check(Color color);
+    vector<pair<Piece, Bitboard>> findKingAttackers();
+    bool in_check();
+    
 
     vector<Move> move_list;
     map<char, int> char_map {
         {'P', 0}, {'N', 1}, {'B', 2}, {'R', 3}, {'Q', 4}, {'K', 5}
     };
 
-    LegalMoves genLegalMoves();
-
 
 public:
     Board();
     Board(string FEN);
     void print_position();
+    LegalMoves genLegalMoves();
     void make_move(string move);
 
 

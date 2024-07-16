@@ -24,8 +24,10 @@ typedef array<Bitboard, RLS> RookTable;
 void print_bitboard(Bitboard b);
 
 // Bitboard functions
+int calcLSB(const Bitboard &b);
 void toggleBit(Bitboard &b, pos square);
 int count_bits(Bitboard b);
+U64 mask_between(int square1, int square2);
 
 // Create look up tables
 inline BishopTable createBishopTable()
