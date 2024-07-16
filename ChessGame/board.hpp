@@ -66,6 +66,7 @@ public:
     Board();
     Board(string FEN);
     void print_position();
+    Bitboard findPinnedPieces();
     LegalMoves genLegalMoves();
     void make_move(string move);
 

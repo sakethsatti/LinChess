@@ -315,6 +315,69 @@ vector<pair<Piece, Bitboard>> Board::findKingAttackers()
     return attackers;
 }
 
+Bitboard Board::findPinnedPieces()
+{
+    Bitboard pinnedPieces = 0ULL;
+
+    // Get all the opposition sliders to iterate through
+    Bitboard bishopOpps = position[7 - turn] & position[BISHOP];
+    Bitboard rookOpps = position[7 - turn] & position[ROOK];
+    Bitboard queenOpps = position[7 - turn] & position[QUEEN];
+
+    // Get king position
+    pos kingPos = (pos)calcLSB(position[KING] & position[6 + turn]);
+
+    // Get rays as if there was a opp in kings position
+    Bitboard bishopRays = bishopAttacks(kingPos, position[6] | position[7]) & position[6 + turn];
+    Bitboard rookRays = rookAttacks(kingPos, position[6] | position[7]) & position[6 + turn];
+
+    // Possible squares for a piece creating a pin
+    Bitboard posBishopPinner = calcBishopMask(kingPos, true);
+    Bitboard posRookPinner = calcRookMask(kingPos, true);
+
+    bishopOpps &= posBishopPinner;
+    rookOpps &= posRookPinner;
+    queenOpps &= posRookPinner | posBishopPinner;
+
+    // Bishops
+    while (bishopOpps)
+    {
+
+        pos nextBishop = (pos)calcLSB(bishopOpps);
+        Bitboard nextBishopAttacks = bishopAttacks(nextBishop, position[6] | position[7]) & position[6 + turn];
+
+        pinnedPieces |= nextBishopAttacks & bishopRays;
+
+        bishopOpps -= 1ULL << nextBishop;
+    }
+
+    // Rooks
+    while (rookOpps)
+    {
+        pos nextRook = (pos)calcLSB(rookOpps);
+        Bitboard nextRookAttacks = rookAttacks(nextRook, position[6] | position[7]) & position[6 + turn];
+
+        pinnedPieces |= nextRookAttacks & rookRays;
+
+        rookOpps -= 1ULL << nextRook;
+    }
+
+    // Queen
+    while (queenOpps)
+    {
+        pos nextQueen = (pos)calcLSB(queenOpps);
+        Bitboard nextRookComponent = rookAttacks(nextQueen, position[6] | position[7]) & position[6 + turn];
+        Bitboard nextBishopComponent = bishopAttacks(nextQueen, position[6] | position[7]) & position[6 + turn];
+
+        pinnedPieces |= nextRookComponent & rookRays & posRookPinner;
+        pinnedPieces |= nextBishopComponent & bishopRays & posBishopPinner;
+
+        queenOpps -= 1ULL << nextQueen;
+    }
+
+    return pinnedPieces;
+}
+
 LegalMoves Board::genLegalMoves()
 {
     Bitboard allColorPieces;
@@ -333,18 +396,26 @@ LegalMoves Board::genLegalMoves()
     }
     LegalMoves legal_moves;
 
+    Bitboard pinnedPiecesMask = findPinnedPieces();
+
     // Useful for detecting kings walking into checks
     Bitboard kingDanger = findUnsafeKingSquares(turn);
     Bitboard en_passant_mask = (en_passant_square >= 0) ? 1ULL << en_passant_square : 0ULL;
 
     vector<pair<Piece, Bitboard>> attackers = findKingAttackers();
     
+
+
     for (int i = 0; i < 64; ++i)
     {
         Piece pieceMoving;
         Bitboard allPieceMoves = 0ULL;
 
-        // TODO Check if Pinned
+        // Check if absolute pin (can't move at all);
+        if ((1ULL << i) && pinnedPiecesMask)
+        {
+            continue;
+        }
 
         // If the piece isn't a king and there are multiple attackers, only the king can move
         if (attackers.size() > 1 && !(allColorPieces & position[KING] & (1ULL << i)))

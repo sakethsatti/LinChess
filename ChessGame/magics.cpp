@@ -3,6 +3,12 @@
 #include <iostream>
 
 
+Bitboard calcRookMask(pos square, bool edge) {
+    // XOR prevents the square from being included in the blocker possibilities
+    
+    return (RANK_1 << (8 * (square / 8))) ^ (FILE_A << (square % 8));
+}
+
 Bitboard calcRookMask(pos square) {
     // XOR prevents the square from being included in the blocker possibilities
     // ~RANK_1 | ~FILE_A | ~FILE_H | ~RANK_8 are edges, which are not relevant
@@ -50,7 +56,48 @@ Bitboard calcRookMask(pos square) {
     
 }
 
- Bitboard calcBishopMask(pos square) {
+Bitboard calcBishopMask(pos square, bool edges) {
+    int rank = square / 8;
+    int file = square % 8;
+
+    Bitboard attack = 0ULL;
+
+    // North East
+    for (int i = 1; i < 8; ++i) {
+        int new_rank = rank + i;
+        int new_file = file + i;
+        attack |= 1ULL << (new_rank * 8 + new_file);
+        if (new_rank > 6 || new_file > 6) break;
+    }
+
+    // North West
+    for (int i = 1; i < 8; ++i) {
+        int new_rank = rank + i;
+        int new_file = file - i;
+        attack |= 1ULL << (new_rank * 8 + new_file);
+        if (new_rank > 6 || new_file < 1) break;
+    }
+
+    // South East
+    for (int i = 1; i < 8; ++i) {
+        int new_rank = rank - i;
+        int new_file = file + i;
+        attack |= 1ULL << (new_rank * 8 + new_file);
+        if (new_rank < 1 || new_file > 6) break;
+    }
+
+    // South West
+    for (int i = 1; i < 8; ++i) {
+        int new_rank = rank - i;
+        int new_file = file - i;
+        attack |= 1ULL << (new_rank * 8 + new_file);
+        if (new_rank < 1 || new_file < 1) break;
+    }
+
+    return attack;
+}
+
+Bitboard calcBishopMask(pos square) {
     int rank = square / 8;
     int file = square % 8;
 

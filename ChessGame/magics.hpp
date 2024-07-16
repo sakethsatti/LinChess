@@ -9,6 +9,8 @@ typedef array<Bitboard, 4096> AttackTable;
 
 Bitboard calcRookMask(pos square);
 Bitboard calcBishopMask(pos square);
+Bitboard calcRookMask(pos square, bool edges);
+Bitboard calcBishopMask(pos square, bool edges);
 
 BlockerTable generateBlockerPermutations(Bitboard mask);
 BlockerTable calcRookBlockers(pos square);
