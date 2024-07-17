@@ -52,6 +52,7 @@ private:
 
     int en_passant_square;
     Bitboard findUnsafeKingSquares(Color color);
+    Bitboard attacksBySliders(Bitboard bishops, Bitboard rooks, Bitboard queens, Bitboard allPieces);
     vector<pair<Piece, Bitboard>> findKingAttackers();
     bool in_check();
     

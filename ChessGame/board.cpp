@@ -378,6 +378,34 @@ Bitboard Board::findPinnedPieces()
     return pinnedPieces;
 }
 
+Bitboard Board::attacksBySliders(Bitboard bishops, Bitboard rooks, Bitboard queens, Bitboard allPieces)
+{
+    Bitboard attacks = 0ULL;
+
+    while (rooks)
+    {
+        pos nextRook = (pos)calcLSB(rooks);
+        attacks |= rookAttacks(nextRook, allPieces);
+        rooks -= 1ULL << nextRook;
+    }
+
+    while (bishops)
+    {
+        pos nextBishop = (pos)calcLSB(bishops);
+        attacks |= bishopAttacks(nextBishop, allPieces);
+        bishops -= 1ULL << nextBishop;
+    }
+
+    while (queens)
+    {
+        pos nextQueen = (pos)calcLSB(queens);
+        attacks |= queenAttacks(nextQueen, allPieces);
+        queens -= 1ULL << nextQueen;
+    }
+
+    return attacks;
+}
+
 LegalMoves Board::genLegalMoves()
 {
     Bitboard allColorPieces;
@@ -403,7 +431,6 @@ LegalMoves Board::genLegalMoves()
     Bitboard en_passant_mask = (en_passant_square >= 0) ? 1ULL << en_passant_square : 0ULL;
 
     vector<pair<Piece, Bitboard>> attackers = findKingAttackers();
-    
 
 
     for (int i = 0; i < 64; ++i)
@@ -427,8 +454,33 @@ LegalMoves Board::genLegalMoves()
             allPieceMoves = kingAttacks((pos)i) & ~kingDanger & ~allColorPieces;
             pieceMoving = KING;
         } else if (allColorPieces & position[PAWN] & (1ULL << i)) {
-            allPieceMoves = pawnMoves((pos)i, allColorPieces | allOppPieces, turn)
-                                    | (pawnAttacks((pos)i, turn) & (allOppPieces | en_passant_mask));
+            allPieceMoves = pawnMoves((pos)i, allColorPieces | allOppPieces, turn);
+
+            Bitboard attackingSquares = pawnAttacks((pos)i, turn);
+
+            allPieceMoves |= attackingSquares & allOppPieces;
+
+            // Check for safe en_passant
+            // This is a relatively expensive calculation, but its worth it because en_passant is quite rare
+            if (attackingSquares & en_passant_mask)
+            {
+                // Recalculate position where en_passant is played
+                Bitboard newPosition = (position[6] | position[7] | (1ULL << en_passant_square)) & // Combine all pieces bitboard with en_passant square (where the capturing pawn will land)
+                                       ~(
+                                            (1ULL << i) | // Remove current square
+                                            ((turn == WHITE) ? (1ULL << (en_passant_square - 8)) : (1ULL << (en_passant_square + 8))) // Remove pawn captured by en_passant
+                                        );
+                
+
+                Bitboard newAttacked = attacksBySliders(position[2] & position[7 - turn], position[3] & position[7 - turn], position[4] & position[7 - turn], newPosition);
+                print_bitboard(newAttacked);
+
+                if (!(newAttacked & (position[5] & position[6 + turn])))
+                {
+                    allPieceMoves |= en_passant_mask;
+                }
+            }
+
             pieceMoving = PAWN;
         } else if (allColorPieces & position[KNIGHT] & (1ULL << i)) {
             allPieceMoves = knightAttacks((pos)i) & ~allColorPieces;
