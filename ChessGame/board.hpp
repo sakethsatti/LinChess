@@ -6,25 +6,25 @@
 #include "bitboard.hpp"
 
 struct Move {
-    // if from or to is -1 then it is a castling move
-    int from;
-    int to;
+    Pos from;
+    Pos to;
     
     Color color;
     bool king_castle;
     bool queen_castle;
-    // -1 if none or will be set to the square that can be captured
-    int en_passant_target;
+    Pos en_passant_target;
 
-    Move(int from, int to, Color color, bool king_castle, bool queen_castle, int en_passant_target) :
+    Piece promotion;
+
+    Move(Pos from, Pos to, Color color, bool king_castle, bool queen_castle, Pos en_passant_target, Piece promotion) :
         from(from), to(to), king_castle(king_castle), queen_castle(queen_castle), color(color),
-        en_passant_target(en_passant_target) {}
+        en_passant_target(en_passant_target), promotion(promotion) {}
 };
 
 typedef vector<Move> LegalMoves;
 
 class Board {
-private:
+public:
     
     /*
         * Represents the entire position using an array of bitboards
@@ -50,20 +50,16 @@ private:
     bool white_queen_castle;
     bool black_queen_castle;
 
-    int en_passant_square;
+    Pos en_passant_square;
     Bitboard findUnsafeKingSquares(Color color);
     Bitboard attacksBySliders(Bitboard bishops, Bitboard rooks, Bitboard queens, Bitboard allPieces);
     vector<pair<Piece, Bitboard>> findKingAttackers();
     bool in_check();
-    
 
-    vector<Move> move_list;
     map<char, int> char_map {
         {'P', 0}, {'N', 1}, {'B', 2}, {'R', 3}, {'Q', 4}, {'K', 5}
     };
 
-
-public:
     Board();
     Board(string FEN);
     void print_position();

@@ -3,13 +3,23 @@
 #include "ChessGame/board.hpp"
 
 int main() {
-    Board board = Board("8/8/8/8/k2Pp2Q/8/8/3K4 b - d3 0 1");
+    Board board = Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
     // print_bitboard(board.findPinnedPieces());
     
+    // std::cout << board.turn << std::endl;
+    // std::cout << board.halfmove_clock << std::endl;
+    // std::cout << board.move_number << std::endl;
+    // std::cout << board.white_king_castle << std::endl;
+    // std::cout << board.black_king_castle << std::endl;
+    // std::cout << board.white_queen_castle << std::endl;
+    // std::cout << board.black_queen_castle << std::endl;
+    // std::cout << board.en_passant_square << std::endl;
+
+
     board.print_position();
     auto legalMoves = board.genLegalMoves();
 
-    
+    std::cout << legalMoves.size() << std::endl;
 
     array<std::string, 64> chess_squares = {
         "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",

@@ -25,7 +25,7 @@ void print_bitboard(Bitboard b);
 
 // Bitboard functions
 int calcLSB(const Bitboard &b);
-void toggleBit(Bitboard &b, pos square);
+void toggleBit(Bitboard &b, Pos square);
 int count_bits(Bitboard b);
 U64 mask_between(int square1, int square2);
 
@@ -35,11 +35,11 @@ inline BishopTable createBishopTable()
     BishopTable table {0ULL};
     int shift = 0;
     for (int i = 0; i < 64; ++i) {
-        BlockerTable blockers = calcBishopBlockers((pos)i);
+        BlockerTable blockers = calcBishopBlockers((Pos)i);
         for (int j = 0; j < (1 << bishop_relevant_bits[i]); ++j) {
             int key = (blockers[j] * bishop_magics[i]) >> (64 - bishop_relevant_bits[i]);
             key += shift;
-            table[key] = genBishopFly((pos)i, blockers[j]);
+            table[key] = genBishopFly((Pos)i, blockers[j]);
         }
         shift += (1 << bishop_relevant_bits[i]);
     }
@@ -52,11 +52,11 @@ inline RookTable createRookTable()
     RookTable table {0ULL};
     int shift = 0;
     for (int i = 0; i < 64; ++i) {
-        BlockerTable blockers = calcRookBlockers((pos)i);
+        BlockerTable blockers = calcRookBlockers((Pos)i);
         for (int j = 0; j < (1 << rook_relevant_bits[i]); ++j) {
             int key = (blockers[j] * rook_magics[i]) >> (64 - rook_relevant_bits[i]);
             key += shift;
-            table[key] = genRookFly((pos)i, blockers[j]);
+            table[key] = genRookFly((Pos)i, blockers[j]);
         }
         shift += (1 << rook_relevant_bits[i]);
     }
@@ -68,17 +68,17 @@ const BishopTable BISHOP_TABLE = createBishopTable();
 const RookTable ROOK_TABLE = createRookTable();
 
 // ********* Leaper pieces *********
-Bitboard pawnAttacks(const pos& square, const Color& color);
-Bitboard pawnMoves(const pos& square, const Bitboard& Blockers, const Color& color);
-Bitboard knightAttacks(const pos& square);
-Bitboard kingAttacks(const pos& square);
+Bitboard pawnAttacks(const Pos& square, const Color& color);
+Bitboard pawnMoves(const Pos& square, const Bitboard& Blockers, const Color& color);
+Bitboard knightAttacks(const Pos& square);
+Bitboard kingAttacks(const Pos& square);
 
-int find_index(const Bitboard& blockers, const pos& sq, const Piece& piece);
+int find_index(const Bitboard& blockers, const Pos& sq, const Piece& piece);
 
 // ********* Sliding pieces *********
-Bitboard rookAttacks(const pos& square, const Bitboard& board_state);
-Bitboard bishopAttacks(const pos& square, const Bitboard& board_state);
-Bitboard queenAttacks(const pos& square, const Bitboard& board_state);
+Bitboard rookAttacks(const Pos& square, const Bitboard& board_state);
+Bitboard bishopAttacks(const Pos& square, const Bitboard& board_state);
+Bitboard queenAttacks(const Pos& square, const Bitboard& board_state);
 
 
 #endif

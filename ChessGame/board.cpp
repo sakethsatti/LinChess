@@ -18,7 +18,7 @@ Board::Board() {
     halfmove_clock = 0;
     move_number =  1;
 
-    en_passant_square = -1;
+    en_passant_square = SQ_NONE;
 
     white_king_castle = true;
     black_king_castle = true;
@@ -142,13 +142,13 @@ Board::Board(std::string FEN) {
     }
 
     if (FEN_parts[3] != "-") {
-        en_passant_square = FEN_parts[3][0] - 'a' + 8 * (FEN_parts[3][1] - '1');
+        en_passant_square = (Pos)(FEN_parts[3][0] - 'a' + 8 * (FEN_parts[3][1] - '1'));
     } else {
-        en_passant_square = -1;
+        en_passant_square = SQ_NONE;
     }
 
-    halfmove_clock = std::stoi(FEN_parts[4]);
-    move_number = std::stoi(FEN_parts[5]);
+    halfmove_clock = (FEN_parts[4] != "") ? std::stoi(FEN_parts[4]) : 0;
+    move_number = (FEN_parts[5] != "") ? std::stoi(FEN_parts[5]) : 0;
 
 }
 
@@ -228,35 +228,36 @@ Bitboard Board::findUnsafeKingSquares(Color color)
     for (int i = 0; i < 64; ++i)
     {
          
-        if (oppPieces & (1 << i))
+        if (oppPieces & (1ULL << i))
         {
-            if (position[PAWN] & oppPieces & (1 << i))
+            if (position[PAWN] & oppPieces & (1ULL << i))
             {
-                attacks |= pawnAttacks((pos)i, color);
+                attacks |= pawnAttacks((Pos)i, Color(1 - color));
             }
-            else if (position[KNIGHT] & oppPieces & (1 << i))
+            else if (position[KNIGHT] & oppPieces & (1ULL << i))
             {
-                attacks |= knightAttacks((pos)i);
+                attacks |= knightAttacks((Pos)i);
             }
-            else if (position[BISHOP] & oppPieces & (1 << i))
+            else if (position[BISHOP] & oppPieces & (1ULL << i))
             {
-                attacks |= bishopAttacks((pos)i, friendPieces | oppPieces);
+                attacks |= bishopAttacks((Pos)i, friendPieces | oppPieces);
             }
-            else if (position[ROOK] & oppPieces & (1 << i))
+            else if (position[ROOK] & oppPieces & (1ULL << i))
             {
-                attacks |= rookAttacks((pos)i, friendPieces | oppPieces);
+                attacks |= rookAttacks((Pos)i, friendPieces | oppPieces);
             }
-            else if (position[QUEEN] & oppPieces & (1 << i))
+            else if (position[QUEEN] & oppPieces & (1ULL << i))
             {
-                attacks |= queenAttacks((pos)i, friendPieces | oppPieces);
+                attacks |= queenAttacks((Pos)i, friendPieces | oppPieces);
             }
-            else if (position[KING] & oppPieces & (1 << i))
+            else if (position[KING] & oppPieces & (1ULL << i))
             {
-                attacks |= kingAttacks((pos)i);
+                attacks |= kingAttacks((Pos)i);
             }
         
         }
     }
+
     return attacks;
 }
 
@@ -271,20 +272,20 @@ vector<pair<Piece, Bitboard>> Board::findKingAttackers()
 {
     vector<pair<Piece, Bitboard>> attackers;
 
-    if (in_check()) return attackers;
+    if (!in_check()) return attackers;
 
-    pos kingPos = (pos)calcLSB(position[6 + turn] & position[5]);
+    Pos kingPos = (Pos)calcLSB(position[6 + turn] & position[5]);
     Bitboard& theOpps = position[7 - turn];
 
     // Find all pieces that seem to be attacking the king
     // King cannot directly attack the king so we don't need to check for that
-    Bitboard pawnAttackers = pawnAttacks(kingPos, turn) & position[0] & theOpps;
-    Bitboard knightAttackers = knightAttacks(kingPos) & position[1] & theOpps;
-    Bitboard bishopAttackers = bishopAttacks(kingPos, position[6] | position[7]) & position[2] & theOpps;
-    Bitboard RookAttackers = rookAttacks(kingPos, position[6] | position[7]) & position[3] & theOpps;
+    Bitboard pawnAttackers = pawnAttacks(kingPos, turn) & position[0] & theOpps & position[0];
+    Bitboard knightAttackers = knightAttacks(kingPos) & position[1] & theOpps & position[1];
+    Bitboard bishopAttackers = bishopAttacks(kingPos, position[6] | position[7]) & position[2] & theOpps & position[2];
+    Bitboard RookAttackers = rookAttacks(kingPos, position[6] | position[7]) & position[3] & theOpps & position[3];
 
     // There can be more than one queen attacking the king possibly in a game
-    Bitboard queenAttackers = queenAttacks(kingPos, position[6] | position[7]) & position[4] & theOpps;
+    Bitboard queenAttackers = queenAttacks(kingPos, position[6] | position[7]) & position[4] & theOpps & position[4];
 
     if (pawnAttackers)
     {
@@ -325,7 +326,7 @@ Bitboard Board::findPinnedPieces()
     Bitboard queenOpps = position[7 - turn] & position[QUEEN];
 
     // Get king position
-    pos kingPos = (pos)calcLSB(position[KING] & position[6 + turn]);
+    Pos kingPos = (Pos)calcLSB(position[KING] & position[6 + turn]);
 
     // Get rays as if there was a opp in kings position
     Bitboard bishopRays = bishopAttacks(kingPos, position[6] | position[7]) & position[6 + turn];
@@ -343,7 +344,7 @@ Bitboard Board::findPinnedPieces()
     while (bishopOpps)
     {
 
-        pos nextBishop = (pos)calcLSB(bishopOpps);
+        Pos nextBishop = (Pos)calcLSB(bishopOpps);
         Bitboard nextBishopAttacks = bishopAttacks(nextBishop, position[6] | position[7]) & position[6 + turn];
 
         pinnedPieces |= nextBishopAttacks & bishopRays;
@@ -354,7 +355,7 @@ Bitboard Board::findPinnedPieces()
     // Rooks
     while (rookOpps)
     {
-        pos nextRook = (pos)calcLSB(rookOpps);
+        Pos nextRook = (Pos)calcLSB(rookOpps);
         Bitboard nextRookAttacks = rookAttacks(nextRook, position[6] | position[7]) & position[6 + turn];
 
         pinnedPieces |= nextRookAttacks & rookRays;
@@ -365,7 +366,7 @@ Bitboard Board::findPinnedPieces()
     // Queen
     while (queenOpps)
     {
-        pos nextQueen = (pos)calcLSB(queenOpps);
+        Pos nextQueen = (Pos)calcLSB(queenOpps);
         Bitboard nextRookComponent = rookAttacks(nextQueen, position[6] | position[7]) & position[6 + turn];
         Bitboard nextBishopComponent = bishopAttacks(nextQueen, position[6] | position[7]) & position[6 + turn];
 
@@ -384,21 +385,21 @@ Bitboard Board::attacksBySliders(Bitboard bishops, Bitboard rooks, Bitboard quee
 
     while (rooks)
     {
-        pos nextRook = (pos)calcLSB(rooks);
+        Pos nextRook = (Pos)calcLSB(rooks);
         attacks |= rookAttacks(nextRook, allPieces);
         rooks -= 1ULL << nextRook;
     }
 
     while (bishops)
     {
-        pos nextBishop = (pos)calcLSB(bishops);
+        Pos nextBishop = (Pos)calcLSB(bishops);
         attacks |= bishopAttacks(nextBishop, allPieces);
         bishops -= 1ULL << nextBishop;
     }
 
     while (queens)
     {
-        pos nextQueen = (pos)calcLSB(queens);
+        Pos nextQueen = (Pos)calcLSB(queens);
         attacks |= queenAttacks(nextQueen, allPieces);
         queens -= 1ULL << nextQueen;
     }
@@ -424,14 +425,18 @@ LegalMoves Board::genLegalMoves()
     }
     LegalMoves legal_moves;
 
+    // print_bitboard(allColorPieces);
+    // print_bitboard(allOppPieces);
+
     Bitboard pinnedPiecesMask = findPinnedPieces();
 
     // Useful for detecting kings walking into checks
     Bitboard kingDanger = findUnsafeKingSquares(turn);
-    Bitboard en_passant_mask = (en_passant_square >= 0) ? 1ULL << en_passant_square : 0ULL;
+    Bitboard en_passant_mask = (en_passant_square != SQ_NONE) ? 1ULL << en_passant_square : 0ULL;
 
     vector<pair<Piece, Bitboard>> attackers = findKingAttackers();
 
+    // std::cout << attackers.size() << std::endl;
 
     for (int i = 0; i < 64; ++i)
     {
@@ -439,7 +444,7 @@ LegalMoves Board::genLegalMoves()
         Bitboard allPieceMoves = 0ULL;
 
         // Check if absolute pin (can't move at all);
-        if ((1ULL << i) && pinnedPiecesMask)
+        if ((1ULL << i) & pinnedPiecesMask)
         {
             continue;
         }
@@ -451,12 +456,12 @@ LegalMoves Board::genLegalMoves()
         }
 
         if (allColorPieces & position[KING] & (1ULL << i)) {
-            allPieceMoves = kingAttacks((pos)i) & ~kingDanger & ~allColorPieces;
+            allPieceMoves = kingAttacks((Pos)i) & ~kingDanger & ~allColorPieces;
             pieceMoving = KING;
         } else if (allColorPieces & position[PAWN] & (1ULL << i)) {
-            allPieceMoves = pawnMoves((pos)i, allColorPieces | allOppPieces, turn);
+            allPieceMoves = pawnMoves((Pos)i, allColorPieces | allOppPieces, turn);
 
-            Bitboard attackingSquares = pawnAttacks((pos)i, turn);
+            Bitboard attackingSquares = pawnAttacks((Pos)i, turn);
 
             allPieceMoves |= attackingSquares & allOppPieces;
 
@@ -473,7 +478,6 @@ LegalMoves Board::genLegalMoves()
                 
 
                 Bitboard newAttacked = attacksBySliders(position[2] & position[7 - turn], position[3] & position[7 - turn], position[4] & position[7 - turn], newPosition);
-                print_bitboard(newAttacked);
 
                 if (!(newAttacked & (position[5] & position[6 + turn])))
                 {
@@ -483,47 +487,77 @@ LegalMoves Board::genLegalMoves()
 
             pieceMoving = PAWN;
         } else if (allColorPieces & position[KNIGHT] & (1ULL << i)) {
-            allPieceMoves = knightAttacks((pos)i) & ~allColorPieces;
+            allPieceMoves = knightAttacks((Pos)i) & ~allColorPieces;
             pieceMoving = KNIGHT;
         } else if (allColorPieces & position[BISHOP] & (1ULL << i)) {
-            allPieceMoves = bishopAttacks((pos)i, allColorPieces | allOppPieces) & ~allColorPieces;
+            allPieceMoves = bishopAttacks((Pos)i, allColorPieces | allOppPieces) & ~allColorPieces;
             pieceMoving = BISHOP;
         } else if (allColorPieces & position[ROOK] & (1ULL << i)) {
-            allPieceMoves = rookAttacks((pos)i, allColorPieces | allOppPieces) & ~allColorPieces;
+            allPieceMoves = rookAttacks((Pos)i, allColorPieces | allOppPieces) & ~allColorPieces;
             pieceMoving = ROOK;
         } else if (allColorPieces & position[QUEEN] & (1ULL << i)) {
-            allPieceMoves = queenAttacks((pos)i, allColorPieces | allOppPieces) & ~allColorPieces;
+            allPieceMoves = queenAttacks((Pos)i, allColorPieces | allOppPieces) & ~allColorPieces;
             pieceMoving = QUEEN;
-        } 
+        } else {
+            continue;
+        }
 
-        if (attackers.size() == 1)
+        if (attackers.size() == 1 && pieceMoving != KING)
         {
             // Capture piece
             Bitboard possibleCheckDefenseMask = attackers[0].second;
+
+            if (pieceMoving == PAWN)
+            {
+                possibleCheckDefenseMask &= pawnAttacks((Pos)i, turn);
+            }
+
             
 
-            // Block (only if attackers are slider pieces)
-            if (attackers[0].first != PAWN && attackers[0].first != KNIGHT)
-            {
-                Bitboard possibleCheckDefenseMask = possibleCheckDefenseMask & 
-                                                    mask_between(calcLSB(position[5] & position[6 + turn]),
-                                                                 calcLSB(attackers[0].second));
-            }
+            possibleCheckDefenseMask = possibleCheckDefenseMask | 
+                                        mask_between(calcLSB(position[5] & position[6 + turn]),
+                                                        calcLSB(attackers[0].second));
             
+            if (i == 0)
+            {
+                print_bitboard(possibleCheckDefenseMask);
+            }
+
             allPieceMoves &= possibleCheckDefenseMask;
         }
  
         while (allPieceMoves)
         {
+
             int moveSquare = calcLSB(allPieceMoves);
-            int enPassantSquare = -1;
+            Pos enPassantSquare = SQ_NONE;
             if (pieceMoving == PAWN && abs(moveSquare - i) == 16)
             {
-                enPassantSquare = (i + moveSquare) / 2;
+                enPassantSquare = (Pos)((i + moveSquare) / 2);
             }
-            legal_moves.push_back(
-                Move(i, moveSquare, turn, false, false, enPassantSquare)
-            );
+
+            if (pieceMoving == PAWN && ((allPieceMoves) & (RANK_1 | RANK_8)))
+            {
+                legal_moves.push_back(
+                    Move((Pos)i, (Pos)moveSquare, turn, false, false, enPassantSquare, KNIGHT)
+                );
+
+                legal_moves.push_back(
+                    Move((Pos)i, (Pos)moveSquare, turn, false, false, enPassantSquare, BISHOP)
+                );
+
+                legal_moves.push_back(
+                    Move((Pos)i, (Pos)moveSquare, turn, false, false, enPassantSquare, ROOK)
+                );
+
+                legal_moves.push_back(
+                    Move((Pos)i, (Pos)moveSquare, turn, false, false, enPassantSquare, QUEEN)
+                );
+            } else {
+                legal_moves.push_back(
+                    Move((Pos)i, (Pos)moveSquare, turn, false, false, enPassantSquare, NONE)
+                );
+            }
 
             allPieceMoves -= (1ULL << moveSquare);
         }
@@ -536,7 +570,7 @@ LegalMoves Board::genLegalMoves()
             if (white_king_castle && !(kingDanger & (1ULL << 5)) && !(allColorPieces & (1ULL << 5)) && !(allOppPieces & (1ULL << 5)) &&
                 !(kingDanger & (1ULL << 6)) && !(allColorPieces & (1ULL << 6)) && !(allOppPieces & (1ULL << 6)))
             {
-                legal_moves.push_back(Move(-1, -1, turn, true, false, -1));
+                legal_moves.push_back(Move(SQ_NONE, SQ_NONE, turn, true, false, SQ_NONE, NONE));
             }
 
             
@@ -545,7 +579,7 @@ LegalMoves Board::genLegalMoves()
                 !(kingDanger & (1ULL << 2)) && !(allColorPieces & (1ULL << 2)) && !(allOppPieces & (1ULL << 2)) &&
                 !(kingDanger & (1ULL << 3)) && !(allColorPieces & (1ULL << 3)) && !(allOppPieces & (1ULL << 3)))
             {
-                legal_moves.push_back(Move(-1, -1, turn, false, true, -1));
+                legal_moves.push_back(Move(SQ_NONE, SQ_NONE, turn, false, true, SQ_NONE, NONE));
             }
         }
         else
@@ -553,14 +587,14 @@ LegalMoves Board::genLegalMoves()
             if (black_king_castle && !(kingDanger & (1ULL << 61)) && !(allColorPieces & (1ULL << 61)) && !(allOppPieces & (1ULL << 61)) &&
                 !(kingDanger & (1ULL << 62)) && !(allColorPieces & (1ULL << 62)) && !(allOppPieces & (1ULL << 62)))
             {
-                legal_moves.push_back(Move(-1, -1, turn, true, false, -1));
+                legal_moves.push_back(Move(SQ_NONE, SQ_NONE, turn, true, false, SQ_NONE, NONE));
             }
             if (black_queen_castle &&
                 !(kingDanger & (1ULL << 57)) && !(allColorPieces & (1ULL << 57)) && !(allOppPieces & (1ULL << 57)) &&
                 !(kingDanger & (1ULL << 58)) && !(allColorPieces & (1ULL << 58)) && !(allOppPieces & (1ULL << 58)) &&
                 !(kingDanger & (1ULL << 59)) && !(allColorPieces & (1ULL << 59)) && !(allOppPieces & (1ULL << 59)))
             {
-                legal_moves.push_back(Move(-1, -1, turn, false, true, -1));
+                legal_moves.push_back(Move(SQ_NONE, SQ_NONE, turn, false, true, SQ_NONE, NONE));
             }
         }
     }

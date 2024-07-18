@@ -26,11 +26,11 @@ int calcLSB(const Bitboard &b)
     return __builtin_ctzll(b);
 }
 
-void toggleBit(Bitboard &b, pos square) {
+void toggleBit(Bitboard &b, Pos square) {
     b ^= 1ULL << square;
 }
 
-void clearBit(Bitboard &b, pos square) {
+void clearBit(Bitboard &b, Pos square) {
     b &= ~(1ULL << square);
 }
 
@@ -67,7 +67,7 @@ U64 mask_between(int square1, int square2) {
 
 }
 
-Bitboard pawnAttacks(const pos& square, const Color& color) {
+Bitboard pawnAttacks(const Pos& square, const Color& color) {
     Bitboard attacks = 0ULL;
     if (color == WHITE) {
         if (1ULL << (square + 7) & ~FILE_H & ~RANK_1) attacks |= 1ULL << (square + 7);
@@ -80,20 +80,29 @@ Bitboard pawnAttacks(const pos& square, const Color& color) {
     return attacks;
 }
 
-Bitboard pawnMoves(const pos& square, const Bitboard& Blockers, const Color& color) {
+Bitboard pawnMoves(const Pos& square, const Bitboard& Blockers, const Color& color) {
     Bitboard attacks = 0ULL;
+    
     if (color == WHITE) {
-        if (1ULL << (square + 8) & ~Blockers) attacks |= 1ULL << (square + 8);
-        if ((1ULL << (square + 16) & ~Blockers) && ((1ULL << square) & RANK_2)) attacks |= 1ULL << (square + 16);
+        if (1ULL << (square + 8) & ~Blockers) {
+            attacks |= 1ULL << (square + 8);
+            if ((1ULL << (square + 16) & ~Blockers)  && ((1ULL << square) & RANK_2)) {
+                attacks |= 1ULL << (square + 16);
+            }
+        }
     }
     else {
-        if (1ULL << (square - 8) & ~Blockers) attacks |= 1ULL << (square - 8);
-        if ((1ULL << (square - 16) & ~Blockers) && ((1ULL << square) & RANK_7)) attacks |= 1ULL << (square - 16);
+        if (1ULL << (square - 8) & ~Blockers) {
+            attacks |= 1ULL << (square - 8);
+            if ((1ULL << (square - 16) & ~Blockers) && ((1ULL << square) & RANK_7)) {
+                attacks |= 1ULL << (square - 16);
+            }
+        }
     }
     return attacks;
 }
 
-Bitboard knightAttacks(const pos& square) {
+Bitboard knightAttacks(const Pos& square) {
     Bitboard attacks = 0ULL;
 
     // 3 up 1 right
@@ -139,7 +148,7 @@ Bitboard knightAttacks(const pos& square) {
     return attacks;
 }
 
-Bitboard kingAttacks(const pos& square) {
+Bitboard kingAttacks(const Pos& square) {
     Bitboard attacks = 0ULL;
     
     // North
@@ -171,7 +180,7 @@ Bitboard kingAttacks(const pos& square) {
 
 
 // This will help find the index in the massive lookup tables
-int find_index(const Bitboard& blockers, const pos& sq, const Piece& piece) {
+int find_index(const Bitboard& blockers, const Pos& sq, const Piece& piece) {
     int index;
     if (piece == BISHOP) {
         index = (blockers * bishop_magics[sq]) >> (64 - bishop_relevant_bits[sq]);
@@ -183,7 +192,7 @@ int find_index(const Bitboard& blockers, const pos& sq, const Piece& piece) {
 }
 
 // ********* Sliding pieces *********
-Bitboard rookAttacks(const pos& square, const Bitboard& board_state)
+Bitboard rookAttacks(const Pos& square, const Bitboard& board_state)
 {
     Bitboard attacks = 0ULL;
     Bitboard blockers = (board_state) & calcRookMask(square);
@@ -191,7 +200,7 @@ Bitboard rookAttacks(const pos& square, const Bitboard& board_state)
     return ROOK_TABLE[index];
 }
 
-Bitboard bishopAttacks(const pos& square, const Bitboard& board_state)
+Bitboard bishopAttacks(const Pos& square, const Bitboard& board_state)
 {
     Bitboard attacks = 0ULL;
     Bitboard blockers = (board_state) & calcBishopMask(square);
@@ -199,7 +208,7 @@ Bitboard bishopAttacks(const pos& square, const Bitboard& board_state)
     return BISHOP_TABLE[index];
 }
 
-Bitboard queenAttacks(const pos& square, const Bitboard& board_state)
+Bitboard queenAttacks(const Pos& square, const Bitboard& board_state)
 {
     return rookAttacks(square, board_state) | bishopAttacks(square, board_state);
 }
