@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <sstream>
 #include <array>
 #include <map>
 

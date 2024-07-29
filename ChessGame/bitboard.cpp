@@ -57,7 +57,6 @@ U64 mask_between(int square1, int square2) {
     else if (abs(square1 - square2) % 9 == 0) direction = 9;  // Diagonal
     else if (abs(square1 - square2) % 7 == 0) direction = 7;  // Diagonal
     else throw std::invalid_argument("Invalid squares");
-
     
     for (int square = lower + direction; square != upper; square += direction) {
         mask |= 1ULL << square;

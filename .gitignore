@@ -3,3 +3,7 @@ linchess*
 
 # ignore vscode settings
 .vscode
+
+#ignore qperft
+qperft*
+log.txt
