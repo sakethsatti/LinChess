@@ -1,7 +1,12 @@
 #include "board.hpp"
+#include "bitboard.hpp"
+#include "constants.hpp"
+#include <exception>
 #include <sstream>
+#include <stdexcept>
 
-Board::Board() {
+Board::Board(): orgGameState(Move(SQ_NONE, SQ_NONE, WHITE, false, false, SQ_NONE, NONE))
+{
 
   // Initialize position
   position[0] = RANK_2 | RANK_7;
@@ -24,9 +29,13 @@ Board::Board() {
   black_king_castle = true;
   white_queen_castle = true;
   black_queen_castle = true;
+
+
 }
 
-Board::Board(std::string FEN) {
+Board::Board(std::string FEN): orgGameState(Move(SQ_NONE, SQ_NONE, WHITE, false, false, SQ_NONE, NONE))
+
+{
 
   // 0 - board 1 - turn 2 - castling 3 - en passant 4 - halfmove clock 5 - fullmove number
   array<string, 6> FEN_parts;
@@ -151,7 +160,10 @@ Board::Board(std::string FEN) {
 
   halfmove_clock = (FEN_parts[4] != "") ? std::stoi(FEN_parts[4]) : 0;
   move_number = (FEN_parts[5] != "") ? std::stoi(FEN_parts[5]) : 0;
-
+ 
+  orgGameState = Move(SQ_NONE, SQ_NONE, turn, false, false, 
+                      en_passant_square, NONE, white_king_castle,
+                      white_queen_castle, black_king_castle, black_queen_castle);
 }
 
 void Board::print_position() {
@@ -216,7 +228,6 @@ void Board::print_position() {
   }
   std::cout << std::endl;
 }
-
 // turn is the color of the king we are checking for
 Bitboard Board::findUnsafeKingSquares(Color turn)
 {
@@ -264,39 +275,64 @@ Bitboard Board::findUnsafeKingSquares(Color turn)
 
 }
 
+bool Board::equals(const Board& b) {
+    // Compare bitboards
+    if (position != b.position) 
+    {
+      std::cout << "position !=" << std::endl;
+      return false;
+    }
+
+    // Compare game info
+    if (turn != b.turn) {
+        
+      std::cout << "turn" << std::endl;
+      return false;
+    }
+
+    // Compare castling rights
+    if (white_king_castle != b.white_king_castle ||
+        black_king_castle != b.black_king_castle ||
+        white_queen_castle != b.white_queen_castle ||
+        black_queen_castle != b.black_queen_castle) {
+      std::cout << "castle" << std::endl;
+      return false;
+    }
+
+    // Compare en passant square
+    if (en_passant_square != b.en_passant_square) {
+       
+      std::cout << "en_passant" << std::endl;
+      return false;
+    }
+
+    if (movesList.size() != b.movesList.size()) {
+        
+      std::cout << "movesList" << std::endl;
+      return false;
+    }
+
+    // If all comparisons pass, the boards are equal
+    return true;
+}
+
 void Board::moveMaker(const Move& move)
 { 
   // Remove in case of captures
-  if (move.to < SQ_NONE && move.en_passant_target == SQ_NONE && (position[7 - move.color] & (1ULL << move.to)))
+  if (move.capture != NONE && move.en_passant_taken == SQ_NONE)
   {
-    if (position[PAWN] & position[7 - move.color] & (1ULL << move.to))
-    {
-      position[PAWN] ^= 1ULL << move.to;
-    } else if (position[KNIGHT] & position[7 - move.color] & (1ULL << move.to))
-    {
-      position[KNIGHT] &= ~(1ULL << move.to);
-    } else if (position[BISHOP] & position[7 - move.color] & (1ULL << move.to))
-    {
-      position[BISHOP] &= ~(1ULL << move.to);
-    } else if (position[ROOK] & position[7 - move.color] & (1ULL << move.to))
-    {
-      position[ROOK] &= ~(1ULL << move.to);
-    } else if (position[QUEEN] & position[7 - move.color] & (1ULL << move.to))
-    {
-      position[QUEEN] &= ~(1ULL << move.to);
-    }
-
+    position[move.capture] ^= 1ULL << move.to; 
     position[7 - move.color] &= ~(1ULL << move.to);
   } 
-  else if (move.to < SQ_NONE && move.en_passant_target < SQ_NONE && (position[7 - move.color] & (1ULL << move.to)))
+  else if (move.capture != NONE && move.en_passant_taken < SQ_NONE)
   {
     if (move.color == WHITE)
     {
-      position[PAWN] &= ~(1ULL << (move.to - 8));
-      position[7] &= ~(1ULL << (move.to - 8));
+      position[PAWN] ^= (1ULL << (move.to - 8));
+      position[7] ^= (1ULL << (move.to - 8));
     } else {
-      position[PAWN] &= ~(1ULL << (move.to + 8));
-      position[7] &= ~(1ULL << (move.to + 8));
+      position[PAWN] ^= (1ULL << (move.to + 8));
+      position[6] ^= (1ULL << (move.to + 8));
     }
   }
 
@@ -382,6 +418,7 @@ void Board::moveMaker(const Move& move)
     position[6 + move.color] &= ~(1ULL << move.from);
   }
   
+  movesList.push_back(move);
   turn = (Color)(1 - turn);
   white_king_castle = move.wkc;
   white_queen_castle = move.wqc;
@@ -390,12 +427,132 @@ void Board::moveMaker(const Move& move)
   en_passant_square = move.en_passant_target;
 }
 
+void Board::print_data()
+{
+  printf("enpassant_target = %s\n", POS_STR[en_passant_square].c_str());
+}
+
 void Board::unmakeMove()
 {
   if (movesList.empty())
   {
-    throw std::runtime_error("Cannot unmake move: No moves have been made."); 
-  }  
+    throw std::runtime_error("Cannot unmake move: No moves have been made.");
+  }
+  
+  Move& lastMove = movesList.back();
+  Move& lastToLastMove = (movesList.size() > 1) ? movesList[movesList.size() - 2] : orgGameState;
+
+  turn = lastMove.color; // Notice how turn is the only variable is that relies lastMove 
+  white_king_castle = lastToLastMove.wkc;
+  white_queen_castle = lastToLastMove.wqc;
+  black_king_castle = lastToLastMove.bkc;
+  black_queen_castle = lastToLastMove.bqc;
+  en_passant_square = lastToLastMove.en_passant_target;
+  
+  if (lastMove.kc && lastMove.color == WHITE)
+  {
+    position[ROOK] ^= (1ULL << 5);
+    position[KING] ^= (1ULL << 6);
+    position[6] ^= (1ULL << 5);
+    position[6] ^= (1ULL << 6);
+
+    position[ROOK] |= (1ULL << 7);
+    position[KING] |= (1ULL << 4);
+    position[6] |= (1ULL << 4);
+    position[6] |= (1ULL << 7);
+
+  } else if (lastMove.qc && lastMove.color == WHITE)
+  {
+    position[ROOK] ^= (1ULL << 3);
+    position[KING] ^= (1ULL << 2);
+    position[6] ^= (1ULL << 3);
+    position[6] ^= (1ULL << 2);
+
+    position[ROOK] |= (1ULL << 0);
+    position[KING] |= (1ULL << 4);
+    position[6] |= (1ULL << 4);
+    position[6] |= (1ULL << 0);
+  } else if (lastMove.kc && lastMove.color == BLACK)
+  {
+    position[ROOK] ^= (1ULL << 61);
+    position[KING] ^= (1ULL << 62);
+    position[7] ^= (1ULL << 61);
+    position[7] ^= (1ULL << 62);
+
+    position[ROOK] |= (1ULL << 63);
+    position[KING] |= (1ULL << 60);
+    position[7] |= (1ULL << 60);
+    position[7] |= (1ULL << 63);
+  } else if (lastMove.qc && lastMove.color == BLACK)
+  {
+    position[ROOK] ^= (1ULL << 59);
+    position[KING] ^= (1ULL << 58);
+    position[7] ^= (1ULL << 59);
+    position[7] ^= (1ULL << 58);
+
+    position[ROOK] |= (1ULL << 56);
+    position[KING] |= (1ULL << 60);
+    position[7] |= (1ULL << 60);
+    position[7] |= (1ULL << 56);
+  } else if (lastMove.promotion != NONE) {
+    position[lastMove.promotion] ^= (1ULL << lastMove.to);
+    position[PAWN] |= (1ULL << lastMove.from);
+
+    position[6 + lastMove.color] ^= (1ULL << lastMove.to);
+    position[6 + lastMove.color] |= (1ULL << lastMove.from);
+  } else {
+    if (position[PAWN] & position[6 + lastMove.color] & (1ULL << lastMove.to))
+    {
+      position[PAWN] ^= (1ULL << lastMove.to);
+      position[PAWN] |= (1ULL << lastMove.from);
+    } else if (position[KNIGHT] & position[6 + lastMove.color] & (1ULL << lastMove.to))
+    {
+      position[KNIGHT] ^= (1ULL << lastMove.to);
+      position[KNIGHT] |= (1ULL << lastMove.from);
+    } else if (position[BISHOP] & position[6 + lastMove.color] & (1ULL << lastMove.to))
+    {
+      position[BISHOP] ^= (1ULL << lastMove.to);
+      position[BISHOP] |= (1ULL << lastMove.from);
+    } else if (position[ROOK] & position[6 + lastMove.color] & (1ULL << lastMove.to))
+    {
+      position[ROOK] ^= (1ULL << lastMove.to);
+      position[ROOK] |= (1ULL << lastMove.from);
+    } else if (position[QUEEN] & position[6 + lastMove.color] & (1ULL << lastMove.to))
+    {
+      position[QUEEN] ^= (1ULL << lastMove.to);
+      position[QUEEN] |= (1ULL << lastMove.from);
+    } else if (position[KING] & position[6 + lastMove.color] & (1ULL << lastMove.to))
+    {
+      position[KING] ^= (1ULL << lastMove.to);
+      position[KING] |= (1ULL << lastMove.from);
+    }
+
+    position[6 + lastMove.color] ^= (1ULL << lastMove.to);
+    position[6 + lastMove.color] |= (1ULL << lastMove.from);
+
+  }
+
+
+  // Deal with captures
+  if (lastMove.capture != NONE && lastMove.en_passant_taken == SQ_NONE)
+  {
+    position[lastMove.capture] |= 1ULL << lastMove.to;
+    position[7 - lastMove.color] |= (1ULL << lastMove.to);
+  } 
+  else if (lastMove.capture != NONE && lastMove.en_passant_taken < SQ_NONE)
+  {
+    if (lastMove.color == WHITE)
+    {
+      position[PAWN] |= (1ULL << (lastMove.to - 8));
+      position[7] |= (1ULL << (lastMove.to - 8));
+    } else {
+      position[PAWN] |= (1ULL << (lastMove.to + 8));
+      position[6] |= (1ULL << (lastMove.to + 8));
+    }
+  }
+
+  movesList.pop_back();
+  
 }
 
 bool Board::in_check()
@@ -483,7 +640,6 @@ PinnersPinned Board::findPinnedPieces()
 
     Pos nextBishop = (Pos)calcLSB(bishopOpps);
     Bitboard nextBishopAttacks = bishopAttacks(nextBishop, position[6] | position[7]) & position[6 + turn];
-
     if (nextBishopAttacks & bishopRays)
     {
       pinnedPieces.push_back({1ULL << nextBishop, nextBishopAttacks & bishopRays, mask_between(nextBishop, kingPos) | 1ULL << nextBishop});
@@ -497,7 +653,6 @@ PinnersPinned Board::findPinnedPieces()
   {
     Pos nextRook = (Pos)calcLSB(rookOpps);
     Bitboard nextRookAttacks = rookAttacks(nextRook, position[6] | position[7]) & position[6 + turn];
-
     if (nextRookAttacks & rookRays)
     {
       pinnedPieces.push_back({1ULL << nextRook, nextRookAttacks & rookRays, mask_between(nextRook, kingPos) | 1ULL << nextRook});
@@ -512,7 +667,7 @@ PinnersPinned Board::findPinnedPieces()
     Pos nextQueen = (Pos)calcLSB(queenOpps);
     Bitboard nextRookComponent = rookAttacks(nextQueen, position[6] | position[7]) & position[6 + turn];
     Bitboard nextBishopComponent = bishopAttacks(nextQueen, position[6] | position[7]) & position[6 + turn];
-
+    
     if ((nextRookComponent & rookRays & posRookPinner) && (nextQueen/8 == kingPos/8 || abs(nextQueen - kingPos) % 8 == 0))
     {
       pinnedPieces.push_back({1ULL << nextQueen, nextRookComponent & rookRays, mask_between(nextQueen, kingPos) | 1ULL << nextQueen});
@@ -645,7 +800,7 @@ LegalMoves Board::genLegalMoves()
 
         if (!(newAttacked & (position[5] & position[6 + turn])))
         {
-          allPieceMoves |= en_passant_mask;
+          allPieceMoves |= en_passant_mask; 
         }
       }
 
@@ -722,33 +877,55 @@ LegalMoves Board::genLegalMoves()
 
     while (allPieceMoves)
     {
+      Pos newEnPassantSquare = SQ_NONE;
       int moveSquare = calcLSB(allPieceMoves);
-      Pos enPassantSquare = SQ_NONE;
+      Pos en_passant_taken = ((pieceMoving == PAWN) && ((1ULL << moveSquare) & (en_passant_mask))) ? en_passant_square : SQ_NONE; 
+
+      Piece captured_piece;
+      
       if (pieceMoving == PAWN && abs(moveSquare - i) == 16)
       {
-        enPassantSquare = (Pos)((i + moveSquare) / 2);
+        newEnPassantSquare = (Pos)((i + moveSquare) / 2);
       }
 
+
+      if ((pieceMoving != PAWN && (1ULL << moveSquare & position[7 - turn]))
+          || (pawnAttacks((Pos)i, turn) & (1ULL << moveSquare) & position[7 - turn])) {
+        for (int i = PAWN; i < KING; ++i)
+        {
+          if (position[i] & position[7 - turn] & (1ULL << moveSquare))
+          {
+            captured_piece = (Piece)i;
+            break;
+          }
+        }
+      } else if (en_passant_taken < SQ_NONE) {
+        captured_piece = PAWN;
+      } else {
+        captured_piece = NONE;
+      }
+       
       if (pieceMoving == PAWN && ((allPieceMoves) & (RANK_1 | RANK_8)))
       {
         legal_moves.push_back(
-          Move((Pos)i, (Pos)moveSquare, turn, false, false, enPassantSquare, KNIGHT, can_wkc, can_wqc, can_bkc, can_bqc)
+          Move((Pos)i, (Pos)moveSquare, turn, false, false, newEnPassantSquare, KNIGHT, can_wkc, can_wqc, can_bkc, can_bqc, captured_piece)
         );
 
         legal_moves.push_back(
-          Move((Pos)i, (Pos)moveSquare, turn, false, false, enPassantSquare, BISHOP, can_wkc, can_wqc, can_bkc, can_bqc)
+          Move((Pos)i, (Pos)moveSquare, turn, false, false, newEnPassantSquare, BISHOP, can_wkc, can_wqc, can_bkc, can_bqc, captured_piece)
         );
 
         legal_moves.push_back(
-          Move((Pos)i, (Pos)moveSquare, turn, false, false, enPassantSquare, ROOK, can_wkc, can_wqc, can_bkc, can_bqc)
+          Move((Pos)i, (Pos)moveSquare, turn, false, false, newEnPassantSquare, ROOK, can_wkc, can_wqc, can_bkc, can_bqc, captured_piece)
         );
 
         legal_moves.push_back(
-          Move((Pos)i, (Pos)moveSquare, turn, false, false, enPassantSquare, QUEEN, can_wkc, can_wqc, can_bkc, can_bqc)
+          Move((Pos)i, (Pos)moveSquare, turn, false, false, newEnPassantSquare, QUEEN, can_wkc, can_wqc, can_bkc, can_bqc, captured_piece)
         );
       } else {
         legal_moves.push_back(
-          Move((Pos)i, (Pos)moveSquare, turn, false, false, enPassantSquare, NONE, can_wkc, can_wqc, can_bkc, can_bqc)
+          Move((Pos)i, (Pos)moveSquare, turn, false, false, newEnPassantSquare, NONE,
+               can_wkc, can_wqc, can_bkc, can_bqc, captured_piece, en_passant_taken)
         );
       }
 
@@ -791,7 +968,7 @@ LegalMoves Board::genLegalMoves()
     }
   }
 
-
+  
   return legal_moves;
 
 }

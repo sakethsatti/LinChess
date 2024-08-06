@@ -16,6 +16,7 @@ struct Move {
     Pos to;
     
     Pos en_passant_target;
+    Pos en_passant_taken;  
 
     Color color;
 
@@ -28,14 +29,16 @@ struct Move {
     bool wqc;
     bool bkc;
     bool bqc;
-
+  
     Piece promotion;
+    Piece capture;
     bool first_move;
 
     Move(Pos from, Pos to, Color color, bool king_castle, bool queen_castle, Pos en_passant_target, Piece promotion,
-         bool wkc = true, bool wqc = true, bool bkc = true, bool bqc = true, bool first_move = false) :
+         bool wkc = true, bool wqc = true, bool bkc = true, bool bqc = true, Piece capture = NONE, Pos en_passant_taken = SQ_NONE) :
         from(from), to(to), kc(king_castle), qc(queen_castle), color(color), en_passant_target(en_passant_target),
-        promotion(promotion), wkc(wkc), wqc(wqc), bkc(bkc), bqc(bqc), first_move(first_move) {}
+        promotion(promotion), wkc(wkc), wqc(wqc), bkc(bkc), bqc(bqc), capture(capture), en_passant_taken(en_passant_taken) {}
+
 };
 
 typedef vector<Move> LegalMoves;
@@ -68,24 +71,47 @@ private:
     bool black_queen_castle;
     Pos en_passant_square;
 
-    vector<Move> movesList;
-
+    Move orgGameState;
+  
     Bitboard findUnsafeKingSquares(Color color);
     Bitboard attacksBySliders(Bitboard bishops, Bitboard rooks, Bitboard queens, Bitboard allPieces);
     KingAttackers findKingAttackers();
     bool in_check();
     PinnersPinned findPinnedPieces();
-
-    map<char, int> char_map {
+  
+    const map<char, int> char_map {
         {'P', 0}, {'N', 1}, {'B', 2}, {'R', 3}, {'Q', 4}, {'K', 5}
     };
-public:
+public:  
+    vector<Move> movesList;
+    bool equals(const Board &b); 
     Board();
     Board(string FEN);
     void print_position();
     LegalMoves genLegalMoves();
     void moveMaker(const Move& move);
     void unmakeMove();
+    void print_data();
+    
+    Color getTurn() {return turn;}
+
+    static void print_moves(const LegalMoves& legalMove)
+    {
+      for (Move move : legalMove)
+      {
+        if (move.kc)
+        {
+          std::cout << "O-O" << std::endl;
+        } else if (move.qc) {
+          std::cout << "O-O-O" << std::endl;
+        } else {
+          std::cout << POS_STR[move.from] << POS_STR[move.to] << std::endl;
+        }
+      }
+    }
 };
+
+int perftRunner(Board &b, const int& depth);
+Board copier(Board b);
 
 #endif // BOARD_HPP

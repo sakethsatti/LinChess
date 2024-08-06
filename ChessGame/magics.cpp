@@ -63,35 +63,43 @@ Bitboard calcBishopMask(Pos square, bool edges) {
     Bitboard attack = 0ULL;
 
     // North East
-    for (int i = 1; i < 8; ++i) {
-        int new_rank = rank + i;
-        int new_file = file + i;
-        attack |= 1ULL << (new_rank * 8 + new_file);
-        if (new_rank > 6 || new_file > 6) break;
+    if (rank != 7 && file != 7) {
+      for (int i = 1; i < 8; ++i) {
+          int new_rank = rank + i;
+          int new_file = file + i;
+          attack |= 1ULL << (new_rank * 8 + new_file);
+          if (new_rank > 6 || new_file > 6) break;
+      }
     }
 
-    // North West
-    for (int i = 1; i < 8; ++i) {
-        int new_rank = rank + i;
-        int new_file = file - i;
-        attack |= 1ULL << (new_rank * 8 + new_file);
-        if (new_rank > 6 || new_file < 1) break;
+    // North West 
+    if (rank != 7 && file != 0) {
+      for (int i = 1; i < 8; ++i) {
+          int new_rank = rank + i;
+          int new_file = file - i;
+          attack |= 1ULL << (new_rank * 8 + new_file);
+          if (new_rank > 6 || new_file < 1) break;
+      }
     }
 
     // South East
-    for (int i = 1; i < 8; ++i) {
-        int new_rank = rank - i;
-        int new_file = file + i;
-        attack |= 1ULL << (new_rank * 8 + new_file);
-        if (new_rank < 1 || new_file > 6) break;
+    if (rank != 0 && file != 7){
+      for (int i = 1; i < 8; ++i) {
+          int new_rank = rank - i;
+          int new_file = file + i;
+          attack |= 1ULL << (new_rank * 8 + new_file);
+          if (new_rank < 1 || new_file > 6) break;
+      }
     }
 
     // South West
-    for (int i = 1; i < 8; ++i) {
-        int new_rank = rank - i;
-        int new_file = file - i;
-        attack |= 1ULL << (new_rank * 8 + new_file);
-        if (new_rank < 1 || new_file < 1) break;
+    if (rank != 0 && file != 0){
+      for (int i = 1; i < 8; ++i) {
+          int new_rank = rank - i;
+          int new_file = file - i;
+          attack |= 1ULL << (new_rank * 8 + new_file);
+          if (new_rank < 1 || new_file < 1) break;
+      }
     }
 
     return attack;
