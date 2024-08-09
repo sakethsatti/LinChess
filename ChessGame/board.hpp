@@ -111,7 +111,7 @@ public:
     }
 };
 
-int perftRunner(Board &b, const int& depth);
+int perftRunner(Board &b, const int& depth, const int& oDepth);
 Board copier(Board b);
 
 #endif // BOARD_HPP

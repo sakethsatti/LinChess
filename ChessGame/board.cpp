@@ -1,7 +1,6 @@
 #include "board.hpp"
 #include "bitboard.hpp"
 #include "constants.hpp"
-#include <exception>
 #include <sstream>
 #include <stdexcept>
 
@@ -429,7 +428,7 @@ void Board::moveMaker(const Move& move)
 
 void Board::print_data()
 {
-  printf("enpassant_target = %s\n", POS_STR[en_passant_square].c_str());
+  printf("enpassant_target = %s\nwhite_king_castle = %s\n", POS_STR[en_passant_square].c_str(), white_king_castle ? "true" : "false");
 }
 
 void Board::unmakeMove()
@@ -747,14 +746,9 @@ LegalMoves Board::genLegalMoves()
   KingAttackers attackers = findKingAttackers();
 
   // std::cout << attackers.size() << std::endl;
-
+  
   for (int i = 0; i < 64; ++i)
   {
-    bool can_wkc = white_king_castle;
-    bool can_wqc = white_queen_castle;
-    bool can_bkc = black_king_castle;
-    bool can_bqc = black_queen_castle;
-
     Piece pieceMoving;
     Bitboard allPieceMoves = 0ULL;
 
@@ -766,17 +760,7 @@ LegalMoves Board::genLegalMoves()
 
     if (allColorPieces & position[KING] & (1ULL << i)) {
       allPieceMoves = kingAttacks((Pos)i) & ~kingDanger & ~allColorPieces;
-      pieceMoving = KING;
-
-      if (turn == WHITE)
-      {
-        can_wkc = false;
-        can_wqc = false;
-      } else {
-        can_bkc = false;
-        can_bqc = false;
-      }
-
+      pieceMoving = KING;  
     } else if (allColorPieces & position[PAWN] & (1ULL << i)) {
       allPieceMoves = pawnMoves((Pos)i, allColorPieces | allOppPieces, turn);
 
@@ -813,25 +797,7 @@ LegalMoves Board::genLegalMoves()
       pieceMoving = BISHOP;
     } else if (allColorPieces & position[ROOK] & (1ULL << i)) {
       allPieceMoves = rookAttacks((Pos)i, allColorPieces | allOppPieces) & ~allColorPieces;
-      pieceMoving = ROOK;
-      if (turn == WHITE)
-      {
-        if (i == 0)
-        {
-          can_wqc = false;
-        } else if (i == 7)
-        {
-          can_wkc = false;
-        }
-      } else {
-        if (i == 56)
-        {
-          can_bqc = false;
-        } else if (i == 63)
-        {
-          can_bkc = false;
-        }
-      }
+      pieceMoving = ROOK; 
     } else if (allColorPieces & position[QUEEN] & (1ULL << i)) {
       allPieceMoves = queenAttacks((Pos)i, allColorPieces | allOppPieces) & ~allColorPieces;
       pieceMoving = QUEEN;
@@ -861,7 +827,18 @@ LegalMoves Board::genLegalMoves()
       if (pieceMoving == PAWN)
       {
         possibleCheckDefenseMask &= pawnAttacks((Pos)i, turn);
+        if (en_passant_square < SQ_NONE && attackers[0].first == PAWN)
+        {
+          if (turn == WHITE && (Pos)calcLSB(attackers[0].second) + 8 == en_passant_square)
+          {
+            possibleCheckDefenseMask |= en_passant_mask;
+          } else if (turn == BLACK && (Pos)calcLSB(attackers[0].second) - 8 == en_passant_square)
+          {
+            possibleCheckDefenseMask |= en_passant_mask;
+          }
+        }    
       }
+
       if (attackers[0].first != PAWN && attackers[0].first != KNIGHT)
       {
         try {
@@ -877,12 +854,45 @@ LegalMoves Board::genLegalMoves()
 
     while (allPieceMoves)
     {
+      bool can_wkc = white_king_castle;
+      bool can_wqc = white_queen_castle;
+      bool can_bkc = black_king_castle;
+      bool can_bqc = black_queen_castle;
+
       Pos newEnPassantSquare = SQ_NONE;
       int moveSquare = calcLSB(allPieceMoves);
       Pos en_passant_taken = ((pieceMoving == PAWN) && ((1ULL << moveSquare) & (en_passant_mask))) ? en_passant_square : SQ_NONE; 
 
       Piece captured_piece;
       
+      if (turn == WHITE && (pieceMoving == KING))
+      {
+        can_wkc = false;
+        can_wqc = false;
+      } else if (turn == BLACK && (pieceMoving == KING)) {
+        can_bkc = false;
+        can_bqc = false;
+      }
+      
+      if (turn == WHITE && pieceMoving == ROOK)
+      {
+        if (i == a1)
+        {
+          can_wqc = false;
+        } else if (i == h1)
+        {
+          can_wkc = false;
+        }
+      } else if (turn == BLACK && pieceMoving == ROOK) {
+        if (i == a8)
+        {
+          can_bqc = false;
+        } else if (i == h8)
+        {
+          can_bkc = false;
+        }
+      }
+
       if (pieceMoving == PAWN && abs(moveSquare - i) == 16)
       {
         newEnPassantSquare = (Pos)((i + moveSquare) / 2);
@@ -896,6 +906,25 @@ LegalMoves Board::genLegalMoves()
           if (position[i] & position[7 - turn] & (1ULL << moveSquare))
           {
             captured_piece = (Piece)i;
+            if (captured_piece == ROOK)
+            {
+              if (turn == WHITE)
+              {
+                  if (moveSquare == h8)
+                  {
+                    can_bkc = false;
+                  } else if (moveSquare == a8) {
+                    can_bqc = false;
+                  }
+              } else if (turn == BLACK) {
+                  if (moveSquare == h1)
+                  {
+                    can_wkc = false;
+                  } else if (moveSquare == a1) {
+                    can_wqc = false;
+                  }
+              }
+            }
             break;
           }
         }
@@ -940,35 +969,43 @@ LegalMoves Board::genLegalMoves()
       if (white_king_castle && !(kingDanger & (1ULL << 5)) && !(allColorPieces & (1ULL << 5)) && !(allOppPieces & (1ULL << 5)) &&
         !(kingDanger & (1ULL << 6)) && !(allColorPieces & (1ULL << 6)) && !(allOppPieces & (1ULL << 6)))
       {
-        legal_moves.push_back(Move(SQ_NONE, SQ_NONE, turn, true, false, SQ_NONE, NONE, false, false, false, false));
+        legal_moves.push_back(Move(SQ_NONE, SQ_NONE, turn, true, false, SQ_NONE, NONE, false, false, black_king_castle, black_queen_castle));
       }
 
 
       if (white_queen_castle &&
         !(kingDanger & (1ULL << 2)) && !(allColorPieces & (1ULL << 2)) && !(allOppPieces & (1ULL << 2)) &&
-        !(kingDanger & (1ULL << 3)) && !(allColorPieces & (1ULL << 3)) && !(allOppPieces & (1ULL << 3)))
+        !(kingDanger & (1ULL << 3)) && !(allColorPieces & (1ULL << 3)) && !(allOppPieces & (1ULL << 3)) &&
+        !(allColorPieces & (1ULL << 1)) && !(allOppPieces & (1ULL << 1)))
       {
-        legal_moves.push_back(Move(SQ_NONE, SQ_NONE, turn, false, true, SQ_NONE, NONE, false, false, false, false));
+        legal_moves.push_back(Move(SQ_NONE, SQ_NONE, turn, false, true, SQ_NONE, NONE, false, false, black_king_castle, black_queen_castle));
       }
     }
     else
-  {
+    {
 
       if (black_king_castle && !(kingDanger & (1ULL << 61)) && !(allColorPieces & (1ULL << 61)) && !(allOppPieces & (1ULL << 61)) &&
         !(kingDanger & (1ULL << 62)) && !(allColorPieces & (1ULL << 62)) && !(allOppPieces & (1ULL << 62)))
       {
-        legal_moves.push_back(Move(SQ_NONE, SQ_NONE, turn, true, false, SQ_NONE, NONE, false, false, false, false));
+        legal_moves.push_back(Move(SQ_NONE, SQ_NONE, turn, true, false, SQ_NONE, NONE, white_king_castle, white_queen_castle, false, false));
       }
       if (black_queen_castle &&
         !(kingDanger & (1ULL << 58)) && !(allColorPieces & (1ULL << 58)) && !(allOppPieces & (1ULL << 58)) &&
-        !(kingDanger & (1ULL << 59)) && !(allColorPieces & (1ULL << 59)) && !(allOppPieces & (1ULL << 59)))
+        !(kingDanger & (1ULL << 59)) && !(allColorPieces & (1ULL << 59)) && !(allOppPieces & (1ULL << 59)) &&
+        !(allColorPieces & (1ULL << 57)) && !(allOppPieces & (1ULL << 57)))
       {
-        legal_moves.push_back(Move(SQ_NONE, SQ_NONE, turn, false, true, SQ_NONE, NONE, false, false, false, false));
+        legal_moves.push_back(Move(SQ_NONE, SQ_NONE, turn, false, true, SQ_NONE, NONE, white_king_castle, white_queen_castle, false, false));
       }
     }
   }
-
   
+  //if (movesList.size() > 0 && (movesList.back().to == e4))
+  //{
+  //  printf("%s\n", movesList.back().wkc ? "true" : "false");
+  //  print_data();
+  //  //Board::print_moves(legal_moves);
+  //}
+   
   return legal_moves;
 
 }
