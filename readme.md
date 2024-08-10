@@ -8,7 +8,8 @@ Eventually self-play?
 - [X] Attack tables
     - [X] Leaping pieces
     - [X] Sliding pieces
-- [ ] Move gen
+- [X] Move gen
+    - Speed up move gen later
 - [ ] Search
 - [ ] Convert from Board to model input.
 - [ ] Create actual Neural Network.
