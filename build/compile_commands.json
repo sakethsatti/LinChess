@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/home/saksatti/LinChess/build",
+  "command": "clang++  -isystem /home/saksatti/LinChess/include -isystem /home/saksatti/LinChess/src -std=gnu++20 -o CMakeFiles/LinChess.dir/src/chess/bitboard.cpp.o -c /home/saksatti/LinChess/src/chess/bitboard.cpp",
+  "file": "/home/saksatti/LinChess/src/chess/bitboard.cpp"
+},
+{
+  "directory": "/home/saksatti/LinChess/build",
+  "command": "clang++  -isystem /home/saksatti/LinChess/include -isystem /home/saksatti/LinChess/src -std=gnu++20 -o CMakeFiles/LinChess.dir/src/chess/board.cpp.o -c /home/saksatti/LinChess/src/chess/board.cpp",
+  "file": "/home/saksatti/LinChess/src/chess/board.cpp"
+},
+{
+  "directory": "/home/saksatti/LinChess/build",
+  "command": "clang++  -isystem /home/saksatti/LinChess/include -isystem /home/saksatti/LinChess/src -std=gnu++20 -o CMakeFiles/LinChess.dir/src/chess/magics.cpp.o -c /home/saksatti/LinChess/src/chess/magics.cpp",
+  "file": "/home/saksatti/LinChess/src/chess/magics.cpp"
+},
+{
+  "directory": "/home/saksatti/LinChess/build",
+  "command": "clang++  -isystem /home/saksatti/LinChess/include -isystem /home/saksatti/LinChess/src -std=gnu++20 -o CMakeFiles/LinChess.dir/src/chess/perft.cpp.o -c /home/saksatti/LinChess/src/chess/perft.cpp",
+  "file": "/home/saksatti/LinChess/src/chess/perft.cpp"
+},
+{
+  "directory": "/home/saksatti/LinChess/build",
+  "command": "clang++  -isystem /home/saksatti/LinChess/include -isystem /home/saksatti/LinChess/src -std=gnu++20 -o CMakeFiles/LinChess.dir/src/linchess.cpp.o -c /home/saksatti/LinChess/src/linchess.cpp",
+  "file": "/home/saksatti/LinChess/src/linchess.cpp"
+},
+{
+  "directory": "/home/saksatti/LinChess/build",
+  "command": "clang++  -isystem /home/saksatti/LinChess/include -isystem /home/saksatti/LinChess/src -std=gnu++20 -o CMakeFiles/LinChess.dir/src/nnue/nn.cpp.o -c /home/saksatti/LinChess/src/nnue/nn.cpp",
+  "file": "/home/saksatti/LinChess/src/nnue/nn.cpp"
+}
+]

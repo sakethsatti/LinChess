@@ -1,7 +1,6 @@
 #include <iostream>
-#include "ChessGame/board.hpp"
+#include <chess/board.hpp>
 
-// 
 int main(int argc, char **argv) {
   Board board = Board(argv[1]); 
   

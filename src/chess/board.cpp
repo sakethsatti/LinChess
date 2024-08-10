@@ -1,6 +1,5 @@
-#include "board.hpp"
-#include "bitboard.hpp"
-#include "constants.hpp"
+#include <chess/board.hpp>
+#include <chess/bitboard.hpp>
 #include <sstream>
 #include <stdexcept>
 

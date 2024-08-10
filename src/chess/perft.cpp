@@ -1,4 +1,4 @@
-#include "board.hpp"
+#include <chess/board.hpp>
 #include <stdexcept>
 
 int perftRunner(Board &b, const int& depth, const int& oDepth)

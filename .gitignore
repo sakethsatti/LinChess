@@ -1,5 +1,5 @@
 # ignore executable
-linchess*
+LinChess
 
 # ignore vscode settings
 .vscode

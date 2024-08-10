@@ -1,4 +1,4 @@
-#include "magics.hpp"
+#include <chess/magics.hpp>
 #include <random>
 #include <iostream>
 

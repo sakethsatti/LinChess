@@ -1,4 +1,4 @@
-#include "bitboard.hpp"
+#include <chess/bitboard.hpp>
 #include <stdexcept>
 
 void print_bitboard(Bitboard b)
