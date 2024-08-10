@@ -1,3 +1,0 @@
-/home/saksatti/LinChess/build/CMakeFiles/LinChess.dir
-/home/saksatti/LinChess/build/CMakeFiles/edit_cache.dir
-/home/saksatti/LinChess/build/CMakeFiles/rebuild_cache.dir

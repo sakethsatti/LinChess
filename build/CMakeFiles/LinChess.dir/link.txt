@@ -1,1 +1,0 @@
-clang++ CMakeFiles/LinChess.dir/src/chess/bitboard.cpp.o CMakeFiles/LinChess.dir/src/chess/board.cpp.o CMakeFiles/LinChess.dir/src/chess/magics.cpp.o CMakeFiles/LinChess.dir/src/chess/perft.cpp.o CMakeFiles/LinChess.dir/src/linchess.cpp.o CMakeFiles/LinChess.dir/src/nnue/nn.cpp.o -o ../LinChess 

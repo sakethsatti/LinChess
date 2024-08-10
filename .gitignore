@@ -4,6 +4,9 @@ LinChess
 # ignore vscode settings
 .vscode
 
+# ignore build
+build
+
 #ignore qperft
 qperft*
 log.txt
