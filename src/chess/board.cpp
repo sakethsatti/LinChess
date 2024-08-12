@@ -320,7 +320,7 @@ void Board::moveMaker(const Move& move)
   if (move.capture != NONE && move.en_passant_taken == SQ_NONE)
   {
     position[move.capture] ^= 1ULL << move.to; 
-    position[7 - move.color] &= ~(1ULL << move.to);
+    position[7 - move.color] ^= (1ULL << move.to);
   } 
   else if (move.capture != NONE && move.en_passant_taken < SQ_NONE)
   {
@@ -341,10 +341,10 @@ void Board::moveMaker(const Move& move)
     position[6] |= (1ULL << 5);
     position[6] |= (1ULL << 6);
 
-    position[ROOK] &= ~(1ULL << 7);
-    position[KING] &= ~(1ULL << 4);
-    position[6] &= ~(1ULL << 4);
-    position[6] &= ~(1ULL << 7);
+    position[ROOK] ^= (1ULL << 7);
+    position[KING] ^= (1ULL << 4);
+    position[6] ^= (1ULL << 4);
+    position[6] ^= (1ULL << 7);
 
   } else if (move.qc && move.color == WHITE)
   {
@@ -353,10 +353,10 @@ void Board::moveMaker(const Move& move)
     position[6] |= (1ULL << 3);
     position[6] |= (1ULL << 2);
 
-    position[ROOK] &= ~(1ULL << 0);
-    position[KING] &= ~(1ULL << 4);
-    position[6] &= ~(1ULL << 4);
-    position[6] &= ~(1ULL << 0);
+    position[ROOK] ^= (1ULL << 0);
+    position[KING] ^= (1ULL << 4);
+    position[6] ^= (1ULL << 4);
+    position[6] ^= (1ULL << 0);
   } else if (move.kc && move.color == BLACK)
   {
     position[ROOK] |= (1ULL << 61);
@@ -364,10 +364,10 @@ void Board::moveMaker(const Move& move)
     position[7] |= (1ULL << 61);
     position[7] |= (1ULL << 62);
 
-    position[ROOK] &= ~(1ULL << 63);
-    position[KING] &= ~(1ULL << 60);
-    position[7] &= ~(1ULL << 60);
-    position[7] &= ~(1ULL << 63);
+    position[ROOK] ^= (1ULL << 63);
+    position[KING] ^= (1ULL << 60);
+    position[7] ^= (1ULL << 60);
+    position[7] ^= (1ULL << 63);
   } else if (move.qc && move.color == BLACK)
   {
     position[ROOK] |= (1ULL << 59);
@@ -375,45 +375,45 @@ void Board::moveMaker(const Move& move)
     position[7] |= (1ULL << 59);
     position[7] |= (1ULL << 58);
 
-    position[ROOK] &= ~(1ULL << 56);
-    position[KING] &= ~(1ULL << 60);
-    position[7] &= ~(1ULL << 60);
-    position[7] &= ~(1ULL << 56);
+    position[ROOK] ^= (1ULL << 56);
+    position[KING] ^= (1ULL << 60);
+    position[7] ^= (1ULL << 60);
+    position[7] ^= (1ULL << 56);
   } else if (move.promotion != NONE) {
     position[move.promotion] |= (1ULL << move.to);
-    position[PAWN] &= ~(1ULL << move.from);
+    position[PAWN] ^= (1ULL << move.from);
 
     position[6 + move.color] |= (1ULL << move.to);
-    position[6 + move.color] &= ~(1ULL << move.from);
+    position[6 + move.color] ^= (1ULL << move.from);
   } else {
     if (position[PAWN] & position[6 + move.color] & (1ULL << move.from))
     {
       position[PAWN] |= (1ULL << move.to);
-      position[PAWN] &= ~(1ULL << move.from);
+      position[PAWN] ^= (1ULL << move.from);
     } else if (position[KNIGHT] & position[6 + move.color] & (1ULL << move.from))
     {
       position[KNIGHT] |= (1ULL << move.to);
-      position[KNIGHT] &= ~(1ULL << move.from);
+      position[KNIGHT] ^= (1ULL << move.from);
     } else if (position[BISHOP] & position[6 + move.color] & (1ULL << move.from))
     {
       position[BISHOP] |= (1ULL << move.to);
-      position[BISHOP] &= ~(1ULL << move.from);
+      position[BISHOP] ^= (1ULL << move.from);
     } else if (position[ROOK] & position[6 + move.color] & (1ULL << move.from))
     {
       position[ROOK] |= (1ULL << move.to);
-      position[ROOK] &= ~(1ULL << move.from);
+      position[ROOK] ^= (1ULL << move.from);
     } else if (position[QUEEN] & position[6 + move.color] & (1ULL << move.from))
     {
       position[QUEEN] |= (1ULL << move.to);
-      position[QUEEN] &= ~(1ULL << move.from);
+      position[QUEEN] ^= (1ULL << move.from);
     } else if (position[KING] & position[6 + move.color] & (1ULL << move.from))
     {
       position[KING] |= (1ULL << move.to);
-      position[KING] &= ~(1ULL << move.from);
+      position[KING] ^= (1ULL << move.from);
     }
 
     position[6 + move.color] |= (1ULL << move.to);
-    position[6 + move.color] &= ~(1ULL << move.from);
+    position[6 + move.color] ^= (1ULL << move.from);
   }
   
   movesList.push_back(move);
@@ -602,7 +602,7 @@ KingAttackers Board::findKingAttackers()
   while (queenAttackers)
   {
     attackers.push_back({QUEEN, queenAttackers & (1ULL << calcLSB(queenAttackers))});
-    queenAttackers -= 1ULL << calcLSB(queenAttackers);
+    queenAttackers &= (queenAttackers - 1);
   }
 
   return attackers;
@@ -643,7 +643,7 @@ PinnersPinned Board::findPinnedPieces()
       pinnedPieces.push_back({1ULL << nextBishop, nextBishopAttacks & bishopRays, mask_between(nextBishop, kingPos) | 1ULL << nextBishop});
     }
 
-    bishopOpps -= 1ULL << nextBishop;
+    bishopOpps &= bishopOpps - 1;
   }
 
   // Rooks
@@ -656,7 +656,7 @@ PinnersPinned Board::findPinnedPieces()
       pinnedPieces.push_back({1ULL << nextRook, nextRookAttacks & rookRays, mask_between(nextRook, kingPos) | 1ULL << nextRook});
     }
 
-    rookOpps -= 1ULL << nextRook;
+    rookOpps &= rookOpps - 1;
   }
 
   // Queen
@@ -674,7 +674,7 @@ PinnersPinned Board::findPinnedPieces()
       pinnedPieces.push_back({1ULL << nextQueen, nextBishopComponent & bishopRays, mask_between(nextQueen, kingPos) | 1ULL << nextQueen});
     }
 
-    queenOpps -= 1ULL << nextQueen;
+    queenOpps &= queenOpps - 1;
   }
 
   return pinnedPieces;
@@ -688,21 +688,21 @@ Bitboard Board::attacksBySliders(Bitboard bishops, Bitboard rooks, Bitboard quee
   {
     Pos nextRook = (Pos)calcLSB(rooks);
     attacks |= rookAttacks(nextRook, allPieces);
-    rooks -= 1ULL << nextRook;
+    rooks &= rooks - 1;
   }
 
   while (bishops)
   {
     Pos nextBishop = (Pos)calcLSB(bishops);
     attacks |= bishopAttacks(nextBishop, allPieces);
-    bishops -= 1ULL << nextBishop;
+    bishops &= bishops - 1;
   }
 
   while (queens)
   {
     Pos nextQueen = (Pos)calcLSB(queens);
     attacks |= queenAttacks(nextQueen, allPieces);
-    queens -= 1ULL << nextQueen;
+    queens &= queens - 1;
   }
 
   return attacks;
@@ -957,7 +957,7 @@ LegalMoves Board::genLegalMoves()
         );
       }
 
-      allPieceMoves -= (1ULL << moveSquare);
+      allPieceMoves &= allPieceMoves - 1;
     }
   }
 

@@ -7,14 +7,14 @@
 typedef array<Bitboard, 4096> BlockerTable;
 typedef array<Bitboard, 4096> AttackTable;
 
-Bitboard calcRookMask(Pos square);
-Bitboard calcBishopMask(Pos square);
-Bitboard calcRookMask(Pos square, bool edges);
-Bitboard calcBishopMask(Pos square, bool edges);
+Bitboard calcRookMask(const Pos& square);
+Bitboard calcBishopMask(const Pos& square);
+Bitboard calcRookMask(const Pos& square, const bool& edges);
+Bitboard calcBishopMask(const Pos& square, const bool& edges);
 
 BlockerTable generateBlockerPermutations(Bitboard mask);
-BlockerTable calcRookBlockers(Pos square);
-BlockerTable calcBishopBlockers(Pos square);
+BlockerTable calcRookBlockers(const Pos& square);
+BlockerTable calcBishopBlockers(const Pos& square);
 
 Bitboard genBishopFly(const Pos& square, const Bitboard& occupancy);
 Bitboard genRookFly(const Pos& square, const Bitboard& occupancy);

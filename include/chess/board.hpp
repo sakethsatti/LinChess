@@ -3,8 +3,9 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
 
-#include "bitboard.hpp"
 #include <tuple>
+#include <chess/bitboard.hpp>
+#include <iostream>
 
 using std::tuple;
 
@@ -111,7 +112,8 @@ public:
     }
 };
 
-int perftRunner(Board &b, const int& depth, const int& oDepth);
+int perft(Board &b, const int& depth, const int& oDepth);
+void perftRunner(Board &b, const int& depth, const int& oDepth);
 Board copier(Board b);
 
 #endif // BOARD_HPP
