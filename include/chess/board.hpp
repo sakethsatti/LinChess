@@ -13,6 +13,8 @@ typedef vector<array<Bitboard, 3>> PinnersPinned;
 typedef vector<pair<Piece, Bitboard>> KingAttackers; 
 
 struct Move {
+    
+
     Pos from;
     Pos to;
     
