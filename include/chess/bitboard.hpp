@@ -4,24 +4,20 @@
 #define BITBOARD_HPP
 
 #include "constants.hpp"
-#include "magics.hpp"
-
-inline consteval int sum_relevant_bits(const array<int, 64>& relevant_bits) {
-  int result = 0;
-  for (int i = 0; i < 64; ++i) {
-    result += 1 << relevant_bits[i];
-  }
-  return result;
-}
-
-// Bishop look up size and Rook look up size
-constexpr int BLS = sum_relevant_bits(bishop_relevant_bits);
-constexpr int RLS = sum_relevant_bits(rook_relevant_bits);
-
-typedef array<Bitboard, BLS> BishopTable;
-typedef array<Bitboard, RLS> RookTable;
 
 void print_bitboard(Bitboard b);
+
+Bitboard calcRookMask(const Pos& square);
+Bitboard calcBishopMask(const Pos& square);
+Bitboard calcRookMask(const Pos& square, const bool& edges);
+Bitboard calcBishopMask(const Pos& square, const bool& edges);
+
+BlockerTable generateBlockerPermutations(Bitboard mask);
+BlockerTable calcRookBlockers(const Pos& square);
+BlockerTable calcBishopBlockers(const Pos& square);
+
+Bitboard genBishopFly(const Pos& square, const Bitboard& occupancy);
+Bitboard genRookFly(const Pos& square, const Bitboard& occupancy);
 
 // Bitboard functions
 int calcLSB(const Bitboard &b);
@@ -219,5 +215,11 @@ inline Bitboard queenAttacks(const Pos& square, const Bitboard& board_state)
 {
   return rookAttacks(square, board_state) | bishopAttacks(square, board_state); 
 }
+
+// This number is NOT a bitboard
+U64 findMagicNumber(const BlockerTable& blockers, const int& important_bits,
+                    const Piece& piece, const Pos& square);
+
+array<U64, 64> findAllMagics(Piece p);
 
 #endif

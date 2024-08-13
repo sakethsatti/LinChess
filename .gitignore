@@ -6,6 +6,7 @@ LinChess
 
 # ignore build
 build
+.cache
 
 #ignore qperft
 qperft*
