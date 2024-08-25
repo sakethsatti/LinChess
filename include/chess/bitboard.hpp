@@ -1,11 +1,14 @@
 #pragma once
 
-#ifndef BITBOARD_HPP
-#define BITBOARD_HPP
-
 #include "constants.hpp"
 
 void print_bitboard(Bitboard b);
+// Bitboard functions
+int calcLSB(const Bitboard &b);
+void toggleBit(Bitboard &b, Pos square);
+int count_bits(Bitboard b);
+U64 mask_between(int square1, int square2);
+
 
 Bitboard calcRookMask(const Pos& square);
 Bitboard calcBishopMask(const Pos& square);
@@ -18,12 +21,6 @@ BlockerTable calcBishopBlockers(const Pos& square);
 
 Bitboard genBishopFly(const Pos& square, const Bitboard& occupancy);
 Bitboard genRookFly(const Pos& square, const Bitboard& occupancy);
-
-// Bitboard functions
-int calcLSB(const Bitboard &b);
-void toggleBit(Bitboard &b, Pos square);
-int count_bits(Bitboard b);
-U64 mask_between(int square1, int square2);
 
 // Create look up tables
 inline BishopTable createBishopTable()
@@ -221,5 +218,3 @@ U64 findMagicNumber(const BlockerTable& blockers, const int& important_bits,
                     const Piece& piece, const Pos& square);
 
 array<U64, 64> findAllMagics(Piece p);
-
-#endif

@@ -1,6 +1,4 @@
 #pragma once
-#ifndef CONSTANTS_HPP
-#define CONSTANTS_HPP
 
 #include <string>
 #include <array>
@@ -23,6 +21,11 @@ constexpr Bitboard RANK_1 = 0xFF;
 constexpr Bitboard RANK_2 = RANK_1 << 8;
 constexpr Bitboard RANK_7 = RANK_1 << 48;
 constexpr Bitboard RANK_8 = RANK_1 << 56;
+
+constexpr Bitboard WKC_SQUARES = 3ULL << 5;
+constexpr Bitboard WQC_SQUARES = 7ULL << 1;
+constexpr Bitboard BKC_SQUARES = 3ULL << 61;
+constexpr Bitboard BQC_SQUARES = 7ULL << 57;
 
 const array<string, 65> POS_STR = {
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
@@ -84,4 +87,3 @@ constexpr U64 rook_magics[64] = {
     0x4000110440208001, 0x2080110188400021, 0x100041001020024b, 0x600900009002005, 0x2e00107805200a, 0x100100040002080d, 0x4101000c12a0804, 0x840100408062
 };
 
-#endif // CONSTANTS_HPP

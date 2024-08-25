@@ -1,12 +1,11 @@
 #include <chess/board.hpp>
 #include <chrono>
 #include <iostream>
-// #include <stdexcept>
 
 int perft(Board &b, const int& depth, const int& oDepth)
 {
   int count = 0;
-  const LegalMoves& moves = b.genLegalMoves();
+  const MovesList& moves = b.genLegalMoves();
   if (depth == 1)
   {
     if (depth == oDepth)
@@ -19,14 +18,14 @@ int perft(Board &b, const int& depth, const int& oDepth)
   
   for (Move move : moves)
   {
-    /// auto lol = copier(b);
+    // auto lol = copier(b);
 
-    b.moveMaker(move);
+    b.makeMove(move);
     // auto moveMade = copier(b);
     
     int temp = perft(b, depth - 1, oDepth);
     if (depth == oDepth) {
-      Board::print_moves(LegalMoves {move});
+      Board::print_moves(MovesList {move});
       std::cout << temp << std::endl;
       std::cout << std::endl;
     }
@@ -34,7 +33,7 @@ int perft(Board &b, const int& depth, const int& oDepth)
 
     b.unmakeMove();
     /*
-    if (!b.equals(lol))
+    if (b != lol)
     {
       lol.print_position(); 
       b.print_position();
@@ -50,7 +49,6 @@ int perft(Board &b, const int& depth, const int& oDepth)
     }
     */
   }
-
   return count;
 
 }
@@ -66,9 +64,4 @@ void perftRunner(Board &b, const int& depth, const int& oDepth)
   double seconds = duration.count() / 1000.0;
   std::cout << "Time elapsed: " <<  seconds << " seconds" << std::endl;
   std::cout << "Nodes/sec: " << count/seconds << std::endl;
-}
-
-Board copier(Board b)
-{
-  return b;
 }
