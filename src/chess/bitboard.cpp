@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <random>
 #include <iostream>
+#include <bit>
 
 void print_bitboard(Bitboard b)
 {
@@ -37,12 +38,7 @@ void clearBit(Bitboard &b, Pos square) {
 }
 
 int count_bits(Bitboard number) {
-    int count = 0;
-    while (number) {
-        number &= (number - 1);
-        count++;
-    }
-    return count;
+    return std::popcount(number);
 }
 
 U64 mask_between(int square1, int square2) {

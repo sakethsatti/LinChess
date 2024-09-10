@@ -510,9 +510,9 @@ PinnersPinned Board::findPinnedPieces()
   PinnersPinned pinnedPieces;
 
   // Get all the opposition sliders to iterate through
-  Bitboard bishopOpps = position[7 - getTurn()] & position[BISHOP];
-  Bitboard rookOpps = position[7 - getTurn()] & position[ROOK];
   Bitboard queenOpps = position[7 - getTurn()] & position[QUEEN];
+  Bitboard bishopOpps = position[7 - getTurn()] & position[BISHOP] | queenOpps;
+  Bitboard rookOpps = position[7 - getTurn()] & position[ROOK] | queenOpps;
 
   // Get king position
   Pos kingPos = (Pos)calcLSB(position[KING] & position[6 + getTurn()]);
@@ -527,7 +527,6 @@ PinnersPinned Board::findPinnedPieces()
 
   bishopOpps &= posBishopPinner;
   rookOpps &= posRookPinner;
-  queenOpps &= posRookPinner | posBishopPinner;
 
   // Bishops
   while (bishopOpps)
@@ -554,24 +553,6 @@ PinnersPinned Board::findPinnedPieces()
     }
 
     rookOpps &= rookOpps - 1;
-  }
-
-  // Queen
-  while (queenOpps)
-  {
-    Pos nextQueen = (Pos)calcLSB(queenOpps);
-    Bitboard nextRookComponent = rookAttacks(nextQueen, position[6] | position[7]) & position[6 + getTurn()];
-    Bitboard nextBishopComponent = bishopAttacks(nextQueen, position[6] | position[7]) & position[6 + getTurn()];
-
-    if ((nextRookComponent & rookRays & posRookPinner) && (nextQueen/8 == kingPos/8 || abs(nextQueen - kingPos) % 8 == 0))
-    {
-      pinnedPieces.push_back({1ULL << nextQueen, nextRookComponent & rookRays, mask_between(nextQueen, kingPos) | 1ULL << nextQueen});
-    } else if (nextBishopComponent & bishopRays & posBishopPinner && (abs(nextQueen - kingPos) % 7 == 0 | abs(nextQueen - kingPos) % 9 == 0))
-    {
-      pinnedPieces.push_back({1ULL << nextQueen, nextBishopComponent & bishopRays, mask_between(nextQueen, kingPos) | 1ULL << nextQueen});
-    }
-
-    queenOpps &= queenOpps - 1;
   }
 
   return pinnedPieces;
