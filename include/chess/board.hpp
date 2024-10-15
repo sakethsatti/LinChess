@@ -265,6 +265,6 @@ inline void Board::uncastle(const Pos& to) {
 
 inline Color Board::getTurn() {return currState->turn;}
 
-int perft(Board &b, const int& depth, const int& oDepth);
+long perft(Board &b, const int& depth, const int& oDepth);
 void perftRunner(Board &b, const int& depth, const int& oDepth); 
 

@@ -2,9 +2,9 @@
 #include <chrono>
 #include <iostream>
 //test
-int perft(Board &b, const int& depth, const int& oDepth)
+long perft(Board &b, const int& depth, const int& oDepth)
 {
-  int count = 0;
+  long count = 0;
   const MovesList& moves = b.genLegalMoves();
   if (depth == 1)
   {
@@ -57,7 +57,7 @@ void perftRunner(Board &b, const int& depth, const int& oDepth)
 {
   auto start = std::chrono::high_resolution_clock::now();
  
-  int count = perft(b, depth, oDepth);  
+  long count = perft(b, depth, oDepth);  
   auto end = std::chrono::high_resolution_clock::now();
   std::cout << "Nodes: " << count << std::endl; 
   std::chrono::duration<double, std::milli> duration = end - start;
